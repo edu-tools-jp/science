@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>唾液のはたらき 対照実験ボード</title>
-<meta name="description" content="中学校理科「唾液のはたらき」で、どの試験管とどの試験管を比べれば何がわかるかを考えるための対照実験シミュレーター。">
+<title>唾液のはたらき 実験の計画を立てよう</title>
+<meta name="description" content="中学校理科「唾液のはたらき」で、実験前に対照実験を組み立て、どんな結果が出たら何がいえるかを予想するためのツール。">
 <style>
 :root{
   color-scheme: light;
@@ -254,8 +254,20 @@ ul{margin:0;padding:0;list-style:none}
 }
 .tube-result .dot{width:12px;height:12px;border-radius:50%;flex:none;margin-top:4px;border:1px solid rgba(0,0,0,.15)}
 .tube-result .muted{color:#93a8ae;font-weight:600}
+.tube-result .qmark{
+  width:16px;height:16px;flex:none;margin-top:2px;border-radius:50%;
+  background:#e8951a;color:#fff;font-size:.7rem;font-weight:900;
+  display:grid;place-items:center;line-height:1;
+}
+.glass .liquid.unknown{
+  background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.55) 0 7px,transparent 7px 14px);
+}
+.glass .glass-q{
+  position:absolute;left:0;right:0;bottom:34%;text-align:center;z-index:2;
+  font-size:1.5rem;font-weight:900;color:#7d97a2;
+}
 .tube-add{
-  width:238px;height:266px;flex:none;
+  width:238px;min-height:210px;align-self:stretch;flex:none;
   border:2.5px dashed var(--line-strong);border-radius:12px;
   background:transparent;color:var(--ink-soft);
   font-weight:800;font-size:.95rem;
@@ -302,7 +314,29 @@ ul{margin:0;padding:0;list-style:none}
 .cond-table td.judge-diff{background:#fff4e2;color:#a15c00;font-weight:800;white-space:nowrap}
 .cond-caption{margin:8px 0 0;font-size:.82rem;color:var(--ink-soft)}
 
-.claim-q{margin:20px 0 10px;font-weight:800;font-size:1rem}
+.claim-q{margin:22px 0 10px;font-weight:800;font-size:1rem}
+.claim-q small{display:block;font-weight:600;font-size:.82rem;color:var(--ink-soft);margin-top:2px}
+
+.preds{display:flex;gap:12px;flex-wrap:wrap}
+.pred-col{
+  flex:1 1 260px;min-width:240px;
+  border:1.5px solid var(--line);border-radius:12px;padding:10px 12px 12px;background:#fbfdfc;
+}
+.pred-head{font-weight:800;font-size:.9rem;color:var(--accent-dark);margin-bottom:8px}
+.pred{
+  display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+  border:2px solid var(--line);border-radius:10px;background:#fff;
+  padding:8px 11px;margin-top:7px;font-weight:700;font-size:.9rem;line-height:1.4;
+}
+.pred:hover{border-color:var(--accent)}
+.pred.on{border-color:var(--accent);background:#f3fbf9;box-shadow:0 0 0 3px var(--accent-soft)}
+.pred .mark{width:19px;height:19px;flex:none;border:2.5px solid var(--line-strong);border-radius:50%}
+.pred.on .mark{border-color:var(--accent);background:radial-gradient(circle,var(--accent) 0 46%,#fff 50%)}
+.pred .swatch-sm{
+  width:20px;height:26px;flex:none;border-radius:3px 3px 7px 7px;border:1.5px solid rgba(0,0,0,.18);
+}
+.pred .pred-text small{display:block;font-weight:600;font-size:.76rem;color:var(--ink-soft)}
+.pred-none{margin:4px 0 0;font-size:.85rem;color:var(--warn);font-weight:700;line-height:1.6}
 .claims{display:flex;flex-direction:column;gap:9px}
 .claim{
   display:flex;align-items:flex-start;gap:10px;
@@ -321,6 +355,13 @@ ul{margin:0;padding:0;list-style:none}
 .verdict{margin-top:16px;border-radius:12px;padding:14px 16px;border:2px solid var(--line);background:#fafcfb}
 .verdict.ok{border-color:#9dd8b5;background:var(--ok-soft)}
 .verdict.ng{border-color:#f0b4b4;background:var(--ng-soft)}
+.verdict.wait{border-color:#e6d09a;background:#fffaef}
+.verdict.wait .v-head{color:#9a6b00}
+.hypo{
+  margin-top:12px;padding:11px 14px;border-radius:10px;
+  background:#fff;border:2px solid var(--ok);
+  font-weight:800;font-size:.97rem;line-height:1.75;color:var(--ok);
+}
 .verdict .v-head{display:flex;align-items:center;gap:9px;font-weight:900;font-size:1.05rem;margin-bottom:6px}
 .verdict.ok .v-head{color:var(--ok)}
 .verdict.ng .v-head{color:var(--ng)}
@@ -373,8 +414,16 @@ textarea.memo:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent
 .record.ng .rec-verdict{color:var(--ng)}
 .rec-head .spacer{margin-left:auto}
 .rec-body{padding:11px 14px;font-size:.92rem;line-height:1.75}
-.rec-body .rec-claim{font-weight:800}
-.rec-body .rec-tubes{margin-top:6px;font-size:.85rem;color:var(--ink-soft)}
+.rec-body .rec-claim{font-weight:800;margin-top:8px}
+.rec-body .rec-tubes{font-size:.85rem;color:var(--ink-soft)}
+.rec-if{
+  margin-top:8px;padding:9px 12px;background:#f7fbfa;
+  border:1.5px solid var(--line);border-radius:9px;font-size:.89rem;
+}
+.rec-if b{display:block;font-size:.78rem;color:var(--ink-soft);margin-bottom:3px}
+.rec-if div{display:flex;align-items:center;gap:7px;line-height:1.7}
+.rec-if .dot{width:12px;height:12px;border-radius:50%;flex:none;border:1px solid rgba(0,0,0,.15)}
+.rec-if .muted{color:#93a8ae}
 .rec-body .rec-memo{
   margin-top:9px;padding:9px 12px;background:#fffdf7;
   border:1.5px solid #eadfc0;border-radius:9px;white-space:pre-wrap;
@@ -458,11 +507,11 @@ textarea.memo:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent
   <div class="wrap">
     <div class="title-row">
       <span class="badge">探Q実験2</span>
-      <h1>唾液のはたらき ― 対照実験ボード</h1>
+      <h1>唾液のはたらき ― 実験の計画を立てよう</h1>
     </div>
     <p class="lead">
       課題：唾液によって、デンプンはどのような物質に分解されるのだろうか。<br>
-      試験管に液を入れて、<strong>どの試験管とどの試験管を比べれば何がわかるのか</strong>を考えよう。
+      仮説を確かめるには、どんな実験をすればよいだろう。<strong>どの試験管とどの試験管を比べ、どんな結果が出たら何がいえるのか</strong>、結果の予想もしてみよう。
     </p>
     <div class="name-print">
       <div>組・番号：<span></span></div><div>名前：<span id="printName"></span></div>
@@ -523,15 +572,15 @@ textarea.memo:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent
     <div class="card-body">
       <div class="rack" id="rack"></div>
       <p class="footnote">
-        ※ 結果は「デンプン溶液に唾液または水を加えて40℃で10分あたため、そのあとヨウ素溶液を入れた／ベネジクト溶液を入れて加熱した」ときのものとして表示しています。
+        ※ 試薬を入れたあと何色になるかは、<strong>実験してみないとわかりません</strong>。ここでは「？」と表示されます。どんな結果になりそうかは STEP 2 で予想しましょう。
       </p>
     </div>
   </section>
 
   <!-- ③ くらべる -->
   <section class="card no-print">
-    <h2><span class="step">STEP 2</span>2本をくらべて考える
-      <span class="note no-print">試験管をタップすると選べます（もう一度タップで解除）</span>
+    <h2><span class="step">STEP 2</span>結果を予想して、いえることを考える
+      <span class="note no-print">2本えらんで「もしこうなったら→こういえる」を考えよう</span>
     </h2>
     <div class="card-body">
       <div class="slots">
@@ -546,7 +595,7 @@ textarea.memo:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent
 
   <!-- ④ 記録 -->
   <section class="card">
-    <h2><span class="step">STEP 3</span>わかったことのまとめ
+    <h2><span class="step">STEP 3</span>立てた予想のまとめ
       <span class="note no-print" id="recCount"></span>
     </h2>
     <div class="card-body">
@@ -603,21 +652,43 @@ const REAGENTS = ["iodine", "benedict"];
 const MAX_TUBES = 6;
 const LABELS = "ABCDEF";
 
-const CLAIMS = [
-  {id:"digest", label:"唾液によって、デンプンがなくなった（分解された）"},
-  {id:"sugar",  label:"デンプンは、唾液によって糖（麦芽糖など）に変えられた"},
-  {id:"none",   label:"この2本を比べても、確かめられることはない"}
+/* 試薬ごとに「起こりうる結果」。どちらになるかは実験してみないとわからない。 */
+const OUTCOMES = {
+  i_purple:   {label:"青紫色になる",               short:"青紫色",   color:"#3f2b7a", means:"デンプンがある"},
+  i_nochange: {label:"変化しない（うすい茶色のまま）", short:"変化なし", color:"#c98a3e", means:"デンプンがない"},
+  b_red:      {label:"赤褐色になる",               short:"赤褐色",   color:"#a83a18", means:"糖がある"},
+  b_blue:     {label:"青色のまま",                 short:"青色のまま", color:"#2f74d0", means:"糖がない"}
+};
+const OUTCOMES_OF = {iodine:["i_purple","i_nochange"], benedict:["b_red","b_blue"]};
+const outcomesFor = t => (t.reagent ? OUTCOMES_OF[t.reagent] : []);
+
+/* その結果から導ける結論 */
+const CONCLUSIONS = [
+  {id:"digested",    label:"唾液がデンプンを分解した（デンプンがなくなった）"},
+  {id:"notDigested", label:"唾液は、デンプンを分解しなかった"},
+  {id:"sugarMade",   label:"唾液によって、デンプンが糖（麦芽糖など）に変わった"},
+  {id:"noSugar",     label:"唾液があっても、糖はできなかった"},
+  {id:"cantTell",    label:"この結果からは、唾液のはたらきはわからない"}
 ];
-const claimLabel = id => (CLAIMS.find(c => c.id === id) || {}).label || "";
+const conclusionLabel = id => (CONCLUSIONS.find(c => c.id === id) || {}).label || "";
+
+/* 結果の組み合わせ（唾液の試験管, 水の試験管）→ 導ける結論 */
+const LOGIC = {
+  "i_nochange|i_purple":   {id:"digested",    why:"唾液を入れたほうにはデンプンがなく、水を入れたほうには残っています。ちがうのは唾液か水かだけなので、デンプンをなくしたのは唾液のはたらきだといえます。"},
+  "i_purple|i_purple":     {id:"notDigested", why:"どちらにもデンプンが残っています。唾液を入れてもデンプンが減っていないので、唾液はデンプンを分解しなかったことになります。"},
+  "i_nochange|i_nochange": {id:"cantTell",    why:"唾液を入れていないほうのデンプンもなくなっています。唾液がなくてもデンプンが消えたことになるので、原因が唾液だとはいえません。"},
+  "i_purple|i_nochange":   {id:"cantTell",    why:"唾液を入れたほうにだけデンプンが残ったことになります。唾液がデンプンを分解したとはいえず、実験そのものを見直す必要があります。"},
+  "b_red|b_blue":          {id:"sugarMade",   why:"唾液を入れたほうにだけ糖ができています。ちがうのは唾液か水かだけなので、デンプンを糖に変えたのは唾液のはたらきだといえます。"},
+  "b_blue|b_blue":         {id:"noSugar",     why:"どちらにも糖がありません。唾液を入れても糖ができていないので、糖はできなかったことになります。"},
+  "b_red|b_red":           {id:"cantTell",    why:"唾液を入れていないほうにも糖があります。もともと糖がふくまれていたのかもしれず、糖ができた原因が唾液だとはいえません。"},
+  "b_blue|b_red":          {id:"cantTell",    why:"唾液を入れていないほうにだけ糖ができたことになります。唾液のはたらきだとはいえず、実験そのものを見直す必要があります。"}
+};
 
 const COLOR = {
-  empty:      null,
-  cloudy:     "#e6ecef",
-  clear:      "#dff0fa",
-  iodineOn:   "#3f2b7a",
-  iodineOff:  "#c98a3e",
-  benedictOn: "#a83a18",
-  benedictOff:"#2f74d0"
+  empty:   null,
+  cloudy:  "#e6ecef",   // デンプン溶液の白いにごり
+  clear:   "#dff0fa",   // 水・唾液だけ
+  unknown: "#dde6ea"    // 試薬を入れたあと（色は実験するまでわからない）
 };
 
 /* ---------- 状態 ---------- */
@@ -625,7 +696,8 @@ const state = {
   tubes: [],
   nextId: 1,
   picked: [],      // 比較のために選んだ試験管の id（最大2）
-  claim: null,
+  predict: {},     // {試験管id: 予想した結果のキー}
+  conclusion: null,
   memo: "",
   records: [],
   mode: null,      // タップして選択中の試薬
@@ -641,28 +713,26 @@ const labelOf    = id => LABELS[indexOfId(id)] || "?";
 
 function newTube(){ return {id: state.nextId++, starch:false, saliva:false, water:false, reagent:null}; }
 
-/* ---------- 反応のモデル ---------- */
-function analyze(t){
-  const digested   = t.starch && t.saliva;   // 唾液がデンプンを分解した
-  const starchLeft = t.starch && !t.saliva;  // デンプンが残っている
-  const sugar      = digested;               // できた糖
-  let color, text, done = false;
-
+/* ---------- 試験管の見た目 ----------
+   このツールは「実験の計画を立てる」ためのもの。
+   試薬を入れたあとに何色になるかは、実験してみないとわからないので出さない。 */
+function tubeView(t){
   if(!t.reagent){
-    color = t.starch ? COLOR.cloudy : ((t.saliva || t.water) ? COLOR.clear : COLOR.empty);
-    text  = "試薬を入れると結果がわかります";
-  } else if(t.reagent === "iodine"){
-    done  = true;
-    color = starchLeft ? COLOR.iodineOn : COLOR.iodineOff;
-    text  = starchLeft ? "青紫色になった → デンプンがある"
-                       : "変化なし（うすい茶色のまま）→ デンプンがない";
-  } else {
-    done  = true;
-    color = sugar ? COLOR.benedictOn : COLOR.benedictOff;
-    text  = sugar ? "赤褐色になった → 糖がある"
-                  : "青色のまま → 糖がない";
+    return {
+      color: t.starch ? COLOR.cloudy : ((t.saliva || t.water) ? COLOR.clear : COLOR.empty),
+      unknown: false,
+      text: t.starch || t.saliva || t.water
+              ? "試薬（ヨウ素溶液・ベネジクト溶液）を入れよう"
+              : "ボトルをドラッグして中身を入れよう"
+    };
   }
-  return {digested, starchLeft, sugar, color, text, done};
+  return {
+    color: COLOR.unknown,
+    unknown: true,
+    text: t.reagent === "iodine"
+      ? "青紫色になる？ 変化しない？ ― 実験してたしかめる"
+      : "赤褐色になる？ 青色のまま？ ― 実験してたしかめる"
+  };
 }
 
 const contentKeys = t => ["starch","saliva","water"].filter(k => t[k]).concat(t.reagent ? [t.reagent] : []);
@@ -744,7 +814,7 @@ function togglePick(id){
   save(); renderAll();
 }
 
-function resetCompareInput(){ state.claim = null; state.memo = ""; }
+function resetCompareInput(){ state.predict = {}; state.conclusion = null; state.memo = ""; }
 
 /* ============================================================
    判定ロジック
@@ -795,54 +865,68 @@ function checkPair(a, b){
 }
 
 /**
- * 生徒の主張（claim）に対する○×と解説をつくる。
+ * 「こんな結果になったら、こういうことがいえる」という予想（仮説）を採点する。
+ * ・2本が対照実験として成り立っているか
+ * ・予想した結果から、その結論が導けるか
  */
-function judge(a, b, claim){
+function judgePlan(a, b, predict, conclusion){
   const chk = checkPair(a, b);
-  const v = {status:"ng", title:"", paras:[], bullets:[], obs:[]};
+  const v = {status:"ng", title:"", paras:[], bullets:[], obs:[], sentence:""};
 
-  if(chk.ok){
-    const sal = chk.salivaTube, wat = chk.waterTube;
-    const rs = analyze(sal), rw = analyze(wat);
-    v.obs = [
-      {color: rs.color, text: "試験管" + labelOf(sal.id) + "（唾液）… " + rs.text},
-      {color: rw.color, text: "試験管" + labelOf(wat.id) + "（水）… "   + rw.text}
-    ];
-    const finding = chk.kind === "iodine"
-      ? "唾液を入れたほうだけデンプンがなくなったこと"
-      : "唾液を入れたほうにだけ糖ができたこと";
-
-    if((claim === "digest" && chk.kind === "iodine") || (claim === "sugar" && chk.kind === "benedict")){
+  if(!chk.ok){
+    // 比べ方が成り立っていないので、導ける結論はない
+    if(conclusion === "cantTell"){
       v.status = "ok";
-      v.title  = "そのとおり！正しい比べ方です";
-      v.paras.push("「変える条件」は唾液を入れるか水を入れるかだけ。「同じにする条件」であるデンプン溶液と" + SUB[chk.kind].name + "はそろっています。");
-      v.paras.push(chk.kind === "iodine"
-        ? "唾液を入れたほうだけデンプンがなくなったので、デンプンをなくしたのは唾液のはたらきだといえます。"
-        : "唾液を入れたほうにだけ糖ができたので、デンプンは唾液によって糖（麦芽糖など）に変えられたといえます。");
-    } else if(claim === "none"){
-      v.title = "この2本は、正しく比べられる組み合わせです";
-      v.paras.push("「変える条件」が唾液か水かだけにそろっています。結果を見くらべると、" + finding + "がわかります。");
-    } else if(claim === "digest"){ // ベネジクトなのにデンプンの話
-      v.title = "おしい！比べ方は正しいけれど…";
-      v.paras.push("ベネジクト溶液は「糖があるか」を調べる試薬です。この2本からわかるのは、唾液があると糖ができるということです。");
-      v.paras.push("デンプンがなくなったことを確かめたいときは、2本ともヨウ素溶液を入れて比べましょう。");
-    } else { // sugar なのにヨウ素
-      v.title = "おしい！比べ方は正しいけれど…";
-      v.paras.push("ヨウ素溶液は「デンプンがあるか」を調べる試薬です。この2本からわかるのは、唾液があるとデンプンがなくなるということです。");
-      v.paras.push("デンプンが糖に変わったことを確かめたいときは、2本ともベネジクト溶液を入れて比べましょう。");
-    }
-  } else {
-    if(claim === "none"){
-      v.status = "ok";
-      v.title  = "そのとおり。この2本では確かめられません";
-      v.paras.push("次の点がそろっていないため、唾液のはたらきを確かめる対照実験になっていません。");
+      v.title  = "そのとおり。この2本ではわかりません";
+      v.paras.push("どんな結果が出たとしても、次の点がそろっていないため、唾液のはたらきは確かめられません。");
     } else {
-      v.title = "この2本では確かめられません";
+      v.title = "この2本では、どんな結果が出ても確かめられません";
       v.paras.push("対照実験は「変える条件は1つだけ、ほかの条件はすべて同じ」にします。次のところを直しましょう。");
     }
     v.bullets = chk.issues;
+    return v;
   }
-  v.pairOk = chk.ok;
+
+  const sal = chk.salivaTube, wat = chk.waterTube;
+  const ps = predict[sal.id], pw = predict[wat.id];
+  if(!ps || !pw){
+    v.status = "wait";
+    v.title  = "結果の予想を選ぼう";
+    v.paras.push("この2本は、変える条件が「唾液か水か」だけにそろった正しい対照実験です。もしどんな結果になったら何がいえるか、2本の予想を選んでみましょう。");
+    return v;
+  }
+
+  v.obs = [
+    {color: OUTCOMES[ps].color, text: "試験管" + labelOf(sal.id) + "（唾液）… " + OUTCOMES[ps].label + " → " + OUTCOMES[ps].means},
+    {color: OUTCOMES[pw].color, text: "試験管" + labelOf(wat.id) + "（水）… "   + OUTCOMES[pw].label + " → " + OUTCOMES[pw].means}
+  ];
+
+  const logic = LOGIC[ps + "|" + pw];
+  v.sentence = "試験管" + labelOf(sal.id) + "（唾液）が" + OUTCOMES[ps].short +
+               "、試験管" + labelOf(wat.id) + "（水）が" + OUTCOMES[pw].short +
+               "になれば、" + conclusionLabel(logic.id).replace(/（[^）]*）/g, "") + "といえる。";
+
+  if(conclusion === logic.id){
+    v.status = "ok";
+    v.title  = "そのとおり！すじの通った予想です";
+    v.paras.push(logic.why);
+    if(logic.id !== "cantTell"){
+      v.paras.push("この予想が正しいかどうかは、実際に実験してたしかめましょう。");
+    }
+  } else {
+    const wrongReagent =
+      (chk.kind === "iodine"   && (conclusion === "sugarMade"  || conclusion === "noSugar")) ||
+      (chk.kind === "benedict" && (conclusion === "digested"   || conclusion === "notDigested"));
+    v.title = "その結果からは、そこまでいえません";
+    if(wrongReagent){
+      v.paras.push(chk.kind === "iodine"
+        ? "ヨウ素溶液でわかるのは「デンプンがあるかどうか」だけです。糖ができたかどうかを調べたいときは、ベネジクト溶液を入れた2本で予想を立てましょう。"
+        : "ベネジクト溶液でわかるのは「糖があるかどうか」だけです。デンプンがなくなったかどうかを調べたいときは、ヨウ素溶液を入れた2本で予想を立てましょう。");
+    } else {
+      v.paras.push(logic.why);
+      v.paras.push("つまり、この予想どおりの結果になったときにいえるのは「" + conclusionLabel(logic.id) + "」です。");
+    }
+  }
   return v;
 }
 
@@ -870,7 +954,7 @@ function renderRack(){
   rack.innerHTML = "";
 
   state.tubes.forEach((t, i) => {
-    const r = analyze(t);
+    const r = tubeView(t);
     const keys = contentKeys(t);
     const pickIdx = state.picked.indexOf(t.id);
     const el = document.createElement("div");
@@ -887,7 +971,8 @@ function renderRack(){
 
     const fill = Math.min(volumeOf(t), 4) * 23;
     const liquid = r.color
-      ? '<div class="liquid" style="height:' + fill + '%;background-color:' + r.color + '"></div>'
+      ? '<div class="liquid' + (r.unknown ? " unknown" : "") + '" style="height:' + fill + '%;background-color:' + r.color + '"></div>' +
+        (r.unknown ? '<span class="glass-q">？</span>' : "")
       : '<div class="liquid" style="height:0"></div><span class="empty-mark">からっぽ</span>';
 
     el.innerHTML =
@@ -903,8 +988,8 @@ function renderRack(){
         '<ul class="tube-side">' + chips + '</ul>' +
       '</div>' +
       '<div class="tube-result">' +
-        (r.done ? '<span class="dot" style="background:' + r.color + '"></span><span>' + esc(r.text) + '</span>'
-                : '<span class="muted">' + esc(r.text) + '</span>') +
+        (r.unknown ? '<span class="qmark">？</span><span>' + esc(r.text) + '</span>'
+                   : '<span class="muted">' + esc(r.text) + '</span>') +
       '</div>';
     rack.appendChild(el);
   });
@@ -956,6 +1041,23 @@ function renderCompare(){
       '<td class="' + (same ? "judge-same" : "judge-diff") + '">' + (same ? "同じ" : "ちがう ←") + '</td></tr>';
   };
 
+  const predictFor = t => {
+    const opts = outcomesFor(t);
+    if(!opts.length){
+      return '<div class="pred-col"><div class="pred-head">試験管' + labelOf(t.id) + '</div>' +
+             '<p class="pred-none">試薬を入れないと、結果は出ません。</p></div>';
+    }
+    return '<div class="pred-col"><div class="pred-head">試験管' + labelOf(t.id) + '（' + esc(condLiquid(t)) + '）</div>' +
+      opts.map(k =>
+        '<button class="pred" data-pred-tube="' + t.id + '" data-pred="' + k + '">' +
+          '<span class="mark"></span>' +
+          '<span class="swatch-sm" style="background:' + OUTCOMES[k].color + '"></span>' +
+          '<span class="pred-text">' + esc(OUTCOMES[k].label) +
+            '<small>' + esc(OUTCOMES[k].means) + '</small></span>' +
+        '</button>').join("") +
+      '</div>';
+  };
+
   box.innerHTML =
     '<table class="cond-table"><thead><tr>' +
       '<th>条件</th><th>試験管' + La + '</th><th>試験管' + Lb + '</th><th>くらべると</th>' +
@@ -966,20 +1068,23 @@ function renderCompare(){
     '</tbody></table>' +
     '<p class="cond-caption">「ちがう」が<strong>「入れた液」の1か所だけ</strong>になっていれば、正しい対照実験です。</p>' +
 
-    '<p class="claim-q">この2本を比べると、どんなことがわかる？</p>' +
+    '<p class="claim-q">① もし、こんな結果になったら？<small>実験するとどうなるかを予想しよう</small></p>' +
+    '<div class="preds" id="preds">' + predictFor(a) + predictFor(b) + '</div>' +
+
+    '<p class="claim-q">② その結果なら、どんなことがいえる？</p>' +
     '<div class="claims" id="claims">' +
-      CLAIMS.map(c =>
+      CONCLUSIONS.map(c =>
         '<button class="claim" data-claim="' + c.id + '"><span class="mark"></span><span>' + esc(c.label) + '</span></button>'
       ).join("") +
     '</div>' +
 
     '<div id="verdictBox"></div>' +
 
-    '<label class="memo-label" for="memo">考察を書こう</label>' +
-    '<textarea class="memo" id="memo" placeholder="例：試験管' + La + 'と試験管' + Lb + 'を比べると、◯◯ということがわかる。なぜなら…"></textarea>' +
+    '<label class="memo-label" for="memo">そう予想した理由を書こう</label>' +
+    '<textarea class="memo" id="memo" placeholder="例：唾液にデンプンを分解するはたらきがあるなら、試験管' + La + 'のデンプンはなくなっているはずだから…"></textarea>' +
     '<div class="compare-actions no-print">' +
-      '<button class="btn btn-primary" id="btnRecord" disabled>まとめに記録する</button>' +
-      '<span class="hint">わかることを選ぶと記録できます</span>' +
+      '<button class="btn btn-primary" id="btnRecord" disabled>予想を記録する</button>' +
+      '<span class="hint">①と②を選ぶと記録できます</span>' +
     '</div>';
 
   $("#memo").value = state.memo;
@@ -989,18 +1094,21 @@ function renderCompare(){
 function updateClaimUI(){
   const claims = $("#claims");
   if(!claims) return;
-  $$("#claims .claim").forEach(el => el.classList.toggle("on", el.dataset.claim === state.claim));
+  $$("#claims .claim").forEach(el => el.classList.toggle("on", el.dataset.claim === state.conclusion));
+  $$("#preds .pred").forEach(el =>
+    el.classList.toggle("on", state.predict[Number(el.dataset.predTube)] === el.dataset.pred));
 
   const vb = $("#verdictBox"), rec = $("#btnRecord");
-  if(!state.claim){ vb.innerHTML = ""; if(rec) rec.disabled = true; return; }
-  if(rec) rec.disabled = false;
+  if(!state.conclusion){ vb.innerHTML = ""; if(rec) rec.disabled = true; return; }
 
   const a = tubeById(state.picked[0]), b = tubeById(state.picked[1]);
-  const v = judge(a, b, state.claim);
+  const v = judgePlan(a, b, state.predict, state.conclusion);
+  if(rec) rec.disabled = (v.status === "wait");
 
   vb.innerHTML =
     '<div class="verdict ' + v.status + '">' +
-      '<div class="v-head"><span class="v-mark">' + (v.status === "ok" ? "○" : "✕") + '</span>' + esc(v.title) + '</div>' +
+      '<div class="v-head"><span class="v-mark">' +
+        (v.status === "ok" ? "○" : v.status === "wait" ? "…" : "✕") + '</span>' + esc(v.title) + '</div>' +
       v.paras.map(p => '<p>' + esc(p) + '</p>').join("") +
       (v.bullets.length ? '<ul>' + v.bullets.map(x => '<li>' + esc(x) + '</li>').join("") + '</ul>' : "") +
       (v.obs.length
@@ -1008,6 +1116,7 @@ function updateClaimUI(){
             '<div><span class="dot" style="background:' + o.color + '"></span><span>' + esc(o.text) + '</span></div>').join("") +
           '</div>'
         : "") +
+      (v.status === "ok" && v.sentence ? '<div class="hypo">' + esc(v.sentence) + '</div>' : "") +
     '</div>';
 }
 
@@ -1015,7 +1124,7 @@ function renderRecords(){
   const wrap = $("#records");
   $("#recCount").textContent = state.records.length ? state.records.length + "件" : "";
   if(!state.records.length){
-    wrap.innerHTML = '<p class="empty-note">まだ記録がありません。STEP 2 で2本をくらべて「まとめに記録する」を押すと、ここにたまっていきます。</p>';
+    wrap.innerHTML = '<p class="empty-note">まだ予想がありません。STEP 2 で2本をくらべて「予想を記録する」を押すと、ここにたまっていきます。</p>';
     return;
   }
   wrap.innerHTML = state.records.map((r, i) =>
@@ -1028,12 +1137,18 @@ function renderRecords(){
         '<button class="btn btn-sm no-print" data-del="' + i + '">消す</button>' +
       '</div>' +
       '<div class="rec-body">' +
-        '<div class="rec-claim">わかること：' + esc(r.claimLabel) + '</div>' +
         '<div class="rec-tubes">' +
-          '試験管' + esc(r.aLabel) + '（' + esc(r.aDesc) + '）… ' + esc(r.aResult) + '<br>' +
-          '試験管' + esc(r.bLabel) + '（' + esc(r.bDesc) + '）… ' + esc(r.bResult) +
+          '試験管' + esc(r.aLabel) + '（' + esc(r.aDesc) + '）<br>' +
+          '試験管' + esc(r.bLabel) + '（' + esc(r.bDesc) + '）' +
         '</div>' +
-        (r.memo ? '<div class="rec-memo"><b>考察</b>' + esc(r.memo) + '</div>' : "") +
+        '<div class="rec-if">' +
+          '<b>もし、こうなったら</b>' +
+          (r.preds.length
+            ? r.preds.map(o => '<div><span class="dot" style="background:' + o.color + '"></span>' + esc(o.text) + '</div>').join("")
+            : '<div class="muted">（結果の予想なし）</div>') +
+        '</div>' +
+        '<div class="rec-claim">→ いえること：' + esc(r.conclusionLabel) + '</div>' +
+        (r.memo ? '<div class="rec-memo"><b>そう予想した理由</b>' + esc(r.memo) + '</div>' : "") +
       '</div>' +
     '</div>'
   ).join("");
@@ -1046,15 +1161,19 @@ function describe(t){
 }
 
 function addRecord(){
-  if(state.picked.length < 2 || !state.claim) return;
+  if(state.picked.length < 2 || !state.conclusion) return;
   const a = tubeById(state.picked[0]), b = tubeById(state.picked[1]);
-  const v = judge(a, b, state.claim);
+  const v = judgePlan(a, b, state.predict, state.conclusion);
+  if(v.status === "wait") return;
   state.records.push({
     aLabel: labelOf(a.id), bLabel: labelOf(b.id),
     aDesc: describe(a),    bDesc: describe(b),
-    aResult: analyze(a).text, bResult: analyze(b).text,
-    aColor: analyze(a).color, bColor: analyze(b).color,
-    claimLabel: claimLabel(state.claim),
+    preds: [a, b].filter(t => state.predict[t.id]).map(t => {
+      const o = OUTCOMES[state.predict[t.id]];
+      return {color: o.color, text: "試験管" + labelOf(t.id) + " … " + o.label + "（" + o.means + "）"};
+    }),
+    conclusionLabel: conclusionLabel(state.conclusion),
+    sentence: v.sentence,
     ok: v.status === "ok",
     title: v.title,
     memo: state.memo.trim()
@@ -1062,7 +1181,7 @@ function addRecord(){
   state.picked = [];
   resetCompareInput();
   save(); renderAll();
-  toast("まとめに記録しました");
+  toast("予想を記録しました");
 }
 
 /* ============================================================
@@ -1161,8 +1280,15 @@ $("#rack").addEventListener("click", e => {
 });
 
 $("#compareArea").addEventListener("click", e => {
+  const pr = e.target.closest("[data-pred]");
+  if(pr){
+    const id = Number(pr.dataset.predTube);
+    state.predict[id] = (state.predict[id] === pr.dataset.pred) ? null : pr.dataset.pred;
+    if(!state.predict[id]) delete state.predict[id];
+    save(); updateClaimUI(); return;
+  }
   const c = e.target.closest("[data-claim]");
-  if(c){ state.claim = (state.claim === c.dataset.claim) ? null : c.dataset.claim; save(); updateClaimUI(); return; }
+  if(c){ state.conclusion = (state.conclusion === c.dataset.claim) ? null : c.dataset.claim; save(); updateClaimUI(); return; }
   if(e.target.closest("#btnRecord")) addRecord();
 });
 $("#compareArea").addEventListener("input", e => {
@@ -1200,7 +1326,8 @@ function save(){
   try{
     localStorage.setItem(STORE_KEY, JSON.stringify({
       tubes: state.tubes, nextId: state.nextId, picked: state.picked,
-      claim: state.claim, memo: state.memo, records: state.records, name: state.name
+      predict: state.predict, conclusion: state.conclusion,
+      memo: state.memo, records: state.records, name: state.name
     }));
   } catch(_){}
 }
@@ -1216,7 +1343,8 @@ function load(){
     })).slice(0, MAX_TUBES);
     state.nextId  = Math.max(1, ...state.tubes.map(t => t.id + 1));
     state.picked  = Array.isArray(d.picked) ? d.picked.filter(id => state.tubes.some(t => t.id === id)).slice(0, 2) : [];
-    state.claim   = CLAIMS.some(c => c.id === d.claim) ? d.claim : null;
+    state.predict = (d.predict && typeof d.predict === "object") ? d.predict : {};
+    state.conclusion = CONCLUSIONS.some(c => c.id === d.conclusion) ? d.conclusion : null;
     state.memo    = typeof d.memo === "string" ? d.memo : "";
     state.records = Array.isArray(d.records) ? d.records : [];
     state.name    = typeof d.name === "string" ? d.name : "";
@@ -1261,17 +1389,22 @@ function exportImage(){
 
   /* --- 先に記録欄の高さを測る --- */
   const blocks = state.records.map(r => {
-    const claimLines = wrap("わかること：" + r.claimLabel, INNER - 32, FONT(16, 700));
-    const resLines   = wrap("試験管" + r.aLabel + "（" + r.aDesc + "）… " + r.aResult + "\n" +
-                            "試験管" + r.bLabel + "（" + r.bDesc + "）… " + r.bResult, INNER - 32, FONT(14));
+    const resLines = wrap("試験管" + r.aLabel + "（" + r.aDesc + "）／" +
+                          "試験管" + r.bLabel + "（" + r.bDesc + "）", INNER - 32, FONT(14));
+    const ifLines  = r.preds.length
+      ? r.preds.map(o => ({color: o.color, lines: wrap(o.text, INNER - 60, FONT(14, 700))}))
+      : [{color: null, lines: ["（結果の予想なし）"]}];
+    const ifRows   = ifLines.reduce((n, o) => n + o.lines.length, 0);
+    const claimLines = wrap("→ いえること：" + r.conclusionLabel, INNER - 32, FONT(16, 700));
     const memoLines  = r.memo ? wrap(r.memo, INNER - 56, FONT(15)) : [];
-    const T = RH_HEAD + RH_GAP + claimLines.length * RH_CLAIM + 2 + resLines.length * RH_RES;
+    const T = RH_HEAD + RH_GAP + resLines.length * RH_RES + 10 +
+              (20 + ifRows * RH_RES + 12) + 6 + claimLines.length * RH_CLAIM;
     const h = T + (memoLines.length ? 12 + 22 + memoLines.length * RH_MEMO + 22 : 0) + 10;
-    return {r, claimLines, resLines, memoLines, T, h};
+    return {r, resLines, ifLines, ifRows, claimLines, memoLines, T, h};
   });
 
   const rows = Math.ceil(state.tubes.length / COLS);
-  const footLines = wrap("※ 結果は「デンプン溶液に唾液または水を加えて40℃で10分あたため、そのあとヨウ素溶液を入れた／ベネジクト溶液を入れて加熱した」ときのものです。",
+  const footLines = wrap("※ これは実験前の計画シートです。試薬を入れたあと実際に何色になるかは、実験してたしかめましょう。",
                          INNER, FONT(13));
 
   let H = PAD + 36 + 26 + 30 + 24 + 34;                       // ヘッダー＋見出し
@@ -1328,10 +1461,10 @@ function exportImage(){
   ctx.fillStyle = "#0f9b7e"; ctx.fillRect(0, 0, W, 8);
   let y = PAD + 22;
   ctx.fillStyle = "#15302b"; ctx.font = FONT(25, 800);
-  ctx.fillText("探Q実験2　唾液のはたらき ― 対照実験ワークシート", PAD, y);
+  ctx.fillText("探Q実験2　唾液のはたらき ― 実験の計画シート", PAD, y);
   y += 26;
   ctx.fillStyle = "#57706c"; ctx.font = FONT(14);
-  ctx.fillText("課題：唾液によって、デンプンはどのような物質に分解されるのだろうか。", PAD, y);
+  ctx.fillText("課題：唾液によって、デンプンはどのような物質に分解されるのだろうか。　／　どんな実験をすればよいか、結果の予想も立てよう。", PAD, y);
   y += 30;
   const d = new Date();
   const stamp = d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate();
@@ -1349,7 +1482,7 @@ function exportImage(){
     const col = i % COLS, row = Math.floor(i / COLS);
     const x = PAD + col * (CARD_W + GAP);
     const cy = y + row * (CARD_H + GAP);
-    const r = analyze(t);
+    const r = tubeView(t);
 
     ctx.fillStyle = "#fbfdfc"; ctx.strokeStyle = "#d6e5e0"; ctx.lineWidth = 2;
     roundRect(x, cy, CARD_W, CARD_H, 12); ctx.fill(); ctx.stroke();
@@ -1361,6 +1494,10 @@ function exportImage(){
     ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
 
     drawTube(x + 16, cy + 54, 42, 118, r.color, Math.min(volumeOf(t), 4) * 0.23);
+    if(r.unknown){
+      ctx.fillStyle = "#7d97a2"; ctx.font = FONT(20, 800);
+      ctx.textAlign = "center"; ctx.fillText("？", x + 37, cy + 140); ctx.textAlign = "left";
+    }
 
     const keys = contentKeys(t);
     let ty = cy + 68;
@@ -1378,24 +1515,25 @@ function exportImage(){
     ctx.setLineDash([3, 3]);
     ctx.beginPath(); ctx.moveTo(x + 14, cy + 182); ctx.lineTo(x + CARD_W - 14, cy + 182); ctx.stroke();
     ctx.setLineDash([]);
-    if(r.done){
-      ctx.fillStyle = r.color;
-      ctx.beginPath(); ctx.arc(x + 21, cy + 198, 6, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = "rgba(0,0,0,.15)"; ctx.lineWidth = 1; ctx.stroke();
+    if(r.unknown){
+      ctx.fillStyle = "#e8951a";
+      ctx.beginPath(); ctx.arc(x + 21, cy + 196, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.font = FONT(10, 800);
+      ctx.textAlign = "center"; ctx.fillText("?", x + 21, cy + 200); ctx.textAlign = "left";
     }
-    const rl = wrap(r.text, CARD_W - (r.done ? 46 : 28), FONT(12.5, 700)).slice(0, 2);
-    ctx.fillStyle = r.done ? "#15302b" : "#93a8ae";
+    const rl = wrap(r.text, CARD_W - (r.unknown ? 46 : 28), FONT(12.5, 700)).slice(0, 2);
+    ctx.fillStyle = r.unknown ? "#15302b" : "#93a8ae";
     ctx.font = FONT(12.5, 700);
-    rl.forEach((l, li) => ctx.fillText(l, x + (r.done ? 34 : 16), cy + 202 + li * 17));
+    rl.forEach((l, li) => ctx.fillText(l, x + (r.unknown ? 34 : 16), cy + 202 + li * 17));
   });
   y += rows * (CARD_H + GAP) + 16;
 
   /* --- 記録 --- */
-  sectionHead("くらべてわかったこと", y);
+  sectionHead("立てた予想", y);
   y += 24;
   if(!blocks.length){
     ctx.fillStyle = "#57706c"; ctx.font = FONT(14);
-    ctx.fillText("記録はまだありません。", PAD, y + 14);
+    ctx.fillText("予想はまだ記録されていません。", PAD, y + 14);
     y += 40;
   }
   blocks.forEach((b, i) => {
@@ -1423,11 +1561,33 @@ function exportImage(){
     ctx.textAlign = "left";
 
     let ty = y + RH_HEAD + RH_GAP;
-    ctx.fillStyle = "#15302b"; ctx.font = FONT(16, 700);
-    b.claimLines.forEach(l => { ctx.fillText(l, x + 16, ty); ty += RH_CLAIM; });
-    ty += 2;
     ctx.fillStyle = "#57706c"; ctx.font = FONT(14);
     b.resLines.forEach(l => { ctx.fillText(l, x + 16, ty); ty += RH_RES; });
+
+    // 「もし、こうなったら」
+    ty += 10;
+    const ifTop = ty - 14, ifH = 20 + b.ifRows * RH_RES + 12;
+    ctx.fillStyle = "#f7fbfa"; ctx.strokeStyle = "#d6e5e0"; ctx.lineWidth = 1.5;
+    roundRect(x + 16, ifTop, w - 32, ifH, 9); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#57706c"; ctx.font = FONT(12, 800);
+    ctx.fillText("もし、こうなったら", x + 28, ifTop + 16);
+    let iy = ifTop + 36;
+    ctx.font = FONT(14, 700);
+    b.ifLines.forEach(o => {
+      if(o.color){
+        ctx.fillStyle = o.color;
+        ctx.beginPath(); ctx.arc(x + 34, iy - 5, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "rgba(0,0,0,.15)"; ctx.lineWidth = 1; ctx.stroke();
+      }
+      ctx.fillStyle = "#15302b";
+      o.lines.forEach((l, li) => { ctx.fillText(l, x + (o.color ? 46 : 28), iy); iy += RH_RES; });
+      void 0;
+    });
+    ty = ifTop + ifH + 6;
+
+    ctx.fillStyle = "#15302b"; ctx.font = FONT(16, 700);
+    b.claimLines.forEach(l => { ctx.fillText(l, x + 16, ty + 12); ty += RH_CLAIM; });
+    ty += 12;
 
     if(b.memoLines.length){
       const top = y + b.T + 8;
@@ -1435,7 +1595,7 @@ function exportImage(){
       ctx.fillStyle = "#fffdf7"; ctx.strokeStyle = "#eadfc0"; ctx.lineWidth = 1.5;
       roundRect(x + 16, top, w - 32, boxH, 9); ctx.fill(); ctx.stroke();
       ctx.fillStyle = "#8a6a1f"; ctx.font = FONT(12, 800);
-      ctx.fillText("考察", x + 28, top + 17);
+      ctx.fillText("そう予想した理由", x + 28, top + 17);
       ctx.fillStyle = "#15302b"; ctx.font = FONT(15);
       let my = top + 41;
       b.memoLines.forEach(l => { ctx.fillText(l, x + 28, my); my += RH_MEMO; });
@@ -1453,7 +1613,7 @@ function exportImage(){
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "唾液のはたらき_" + (state.name ? state.name.replace(/[\\/:*?"<>|]/g, "") + "_" : "") + "ワークシート.png";
+    a.download = "唾液のはたらき_" + (state.name ? state.name.replace(/[\\/:*?"<>|]/g, "") + "_" : "") + "実験の計画.png";
     document.body.appendChild(a); a.click();
     setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 3000);
     toast("画像を保存しました");
