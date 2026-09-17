@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>唾液のはたらき 対照実験ボード</title>
+<meta name="description" content="中学校理科「唾液のはたらき」で、どの試験管とどの試験管を比べれば何がわかるかを考えるための対照実験シミュレーター。">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f2f7f5;
+  --panel:#ffffff;
+  --ink:#15302b;
+  --ink-soft:#57706c;
+  --line:#d6e5e0;
+  --line-strong:#b6cdc6;
+  --accent:#0f9b7e;
+  --accent-dark:#0a7561;
+  --accent-soft:#e4f5f0;
+  --ok:#0d7a42;
+  --ok-soft:#e6f6ec;
+  --ng:#c22f2f;
+  --ng-soft:#fdecec;
+  --warn:#b45309;
+  --radius:14px;
+  --shadow:0 2px 8px rgba(18,48,43,.09);
+  --st-starch:#aebdc4;
+  --st-saliva:#efa41c;
+  --st-water:#3f8ff0;
+  --st-iodine:#a9682a;
+  --st-benedict:#2f74d0;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,system-ui,sans-serif;
+  font-size:16px;
+  line-height:1.7;
+  -webkit-text-size-adjust:100%;
+}
+h1,h2,h3{margin:0;line-height:1.35}
+button{font-family:inherit;font-size:inherit;cursor:pointer}
+ul{margin:0;padding:0;list-style:none}
+
+/* ---------- レイアウト ---------- */
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px 64px}
+
+.app-header{
+  background:linear-gradient(135deg,#0f9b7e,#12b08c);
+  color:#fff;
+  padding:18px 0 20px;
+  box-shadow:0 2px 10px rgba(15,155,126,.25);
+}
+.app-header .wrap{padding-bottom:0}
+.title-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 16px}
+.badge{
+  background:rgba(255,255,255,.22);
+  border:1.5px solid rgba(255,255,255,.55);
+  border-radius:999px;
+  padding:2px 12px;
+  font-size:.82rem;
+  font-weight:700;
+  letter-spacing:.04em;
+}
+.app-header h1{font-size:1.6rem;font-weight:800;letter-spacing:.02em}
+.app-header .lead{margin:10px 0 0;font-size:.95rem;opacity:.95;max-width:46em}
+.header-tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}
+.name-field{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.16);
+  border:1.5px solid rgba(255,255,255,.5);
+  border-radius:10px;padding:4px 10px;font-size:.9rem;font-weight:700;
+}
+.name-field input{
+  border:0;background:transparent;color:#fff;font:inherit;font-weight:600;
+  width:9em;outline:none;
+}
+.name-field input::placeholder{color:rgba(255,255,255,.7);font-weight:400}
+
+.btn{
+  border:1.5px solid var(--line-strong);
+  background:var(--panel);
+  color:var(--ink);
+  border-radius:10px;
+  padding:7px 14px;
+  font-weight:700;
+  font-size:.92rem;
+  transition:transform .06s ease, box-shadow .12s ease, background .12s ease;
+}
+.btn:hover{background:#f6fbf9}
+.btn:active{transform:translateY(1px)}
+.btn-ghost{
+  background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.55);color:#fff;
+}
+.btn-ghost:hover{background:rgba(255,255,255,.28)}
+.btn-primary{background:var(--accent);border-color:var(--accent-dark);color:#fff}
+.btn-primary:hover{background:var(--accent-dark)}
+.btn-primary:disabled{background:#b9ccc7;border-color:#b9ccc7;color:#fff;cursor:not-allowed}
+.btn-sm{padding:3px 9px;font-size:.8rem;border-radius:8px}
+
+.card{
+  background:var(--panel);
+  border:1.5px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  margin-top:18px;
+  overflow:hidden;
+}
+.card > h2{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  font-size:1.05rem;font-weight:800;
+  padding:12px 16px;
+  background:var(--accent-soft);
+  border-bottom:1.5px solid var(--line);
+  color:var(--accent-dark);
+}
+.card > h2 .step{
+  background:var(--accent);color:#fff;border-radius:8px;
+  font-size:.78rem;padding:2px 9px;letter-spacing:.06em;
+}
+.card > h2 .note{margin-left:auto;font-size:.82rem;font-weight:600;color:var(--ink-soft)}
+.card-body{padding:16px}
+
+/* ---------- 試薬パレット ---------- */
+.palette-card{position:sticky;top:0;z-index:30;margin-top:0;border-radius:0 0 var(--radius) var(--radius);border-top:0}
+.palette{display:flex;flex-wrap:wrap;gap:10px}
+.bottle{
+  display:flex;align-items:center;gap:9px;
+  border:2px solid var(--line-strong);
+  background:#fff;
+  border-radius:12px;
+  padding:9px 14px 9px 10px;
+  font-weight:700;
+  touch-action:none;
+  user-select:none;-webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  transition:border-color .12s, box-shadow .12s, transform .06s;
+}
+.bottle:hover{border-color:var(--accent)}
+.bottle.selected{
+  border-color:var(--accent);
+  box-shadow:0 0 0 4px var(--accent-soft);
+  background:#f3fbf9;
+}
+.bottle .swatch{
+  width:22px;height:30px;border-radius:4px 4px 7px 7px;
+  border:2px solid rgba(0,0,0,.18);
+  flex:none;
+  position:relative;
+}
+.bottle .swatch::before{
+  content:"";position:absolute;left:50%;top:-6px;transform:translateX(-50%);
+  width:9px;height:6px;border-radius:2px 2px 0 0;background:rgba(0,0,0,.22);
+}
+.bottle small{display:block;font-size:.72rem;font-weight:600;color:var(--ink-soft);line-height:1.3}
+.palette-hint{
+  margin:12px 0 0;font-size:.88rem;color:var(--ink-soft);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.palette-hint strong{color:var(--accent-dark)}
+.mode-bar{
+  display:none;align-items:center;gap:10px;flex-wrap:wrap;
+  margin-top:12px;padding:9px 13px;
+  background:#fff8e6;border:1.5px solid #f2d492;border-radius:10px;
+  font-size:.9rem;font-weight:700;color:#8a5a00;
+}
+.mode-bar.on{display:flex}
+
+/* ---------- 試験管ラック ---------- */
+.rack{
+  display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;
+}
+.tube{
+  width:238px;flex:none;
+  border:2px solid var(--line);
+  border-radius:12px;
+  background:#fbfdfc;
+  padding:10px 10px 12px;
+  transition:border-color .12s, box-shadow .12s, background .12s;
+  -webkit-tap-highlight-color:transparent;
+}
+.tube.drop-hover{border-color:var(--accent);background:#eefaf6;box-shadow:0 0 0 4px var(--accent-soft)}
+.tube.picked{border-color:#f0a81c;background:#fffaf0;box-shadow:0 0 0 4px #fdf0d5}
+.tube-head{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.tube-label{
+  width:30px;height:30px;flex:none;
+  border-radius:9px;background:var(--accent);color:#fff;
+  font-weight:800;display:grid;place-items:center;font-size:1rem;
+}
+.tube.picked .tube-label{background:#e8950f}
+.pick-tag{
+  font-size:.74rem;font-weight:800;color:#8a5a00;background:#fdf0d5;
+  border:1.5px solid #f0cf8e;border-radius:999px;padding:1px 8px;
+}
+.tube-head .spacer{margin-left:auto}
+.icon-btn{
+  border:1.5px solid var(--line-strong);background:#fff;color:var(--ink-soft);
+  border-radius:8px;width:26px;height:26px;display:grid;place-items:center;
+  font-size:.8rem;font-weight:800;line-height:1;padding:0;
+}
+.icon-btn:hover{background:#fdecec;border-color:#e6a3a3;color:var(--ng)}
+.tube-main{display:flex;gap:10px}
+.glass{
+  width:50px;height:172px;flex:none;position:relative;
+  border:3px solid #b9cbd4;border-top:0;
+  border-radius:4px 4px 26px 26px;
+  background:linear-gradient(100deg,rgba(255,255,255,.9),rgba(226,238,243,.75));
+  overflow:hidden;
+  box-shadow:inset -5px 0 9px rgba(120,150,165,.16);
+}
+.glass::before{
+  content:"";position:absolute;left:7px;top:6px;bottom:22px;width:6px;
+  background:linear-gradient(to bottom,rgba(255,255,255,.95),rgba(255,255,255,.2));
+  border-radius:4px;z-index:3;pointer-events:none;
+}
+.glass .liquid{
+  position:absolute;left:0;right:0;bottom:0;
+  height:0;
+  transition:height .28s ease, background-color .28s ease;
+  z-index:1;
+}
+.glass .liquid::before{
+  content:"";position:absolute;left:0;right:0;top:-4px;height:8px;
+  border-radius:50%;background:inherit;filter:brightness(1.12);
+}
+.glass .empty-mark{
+  position:absolute;inset:auto 0 12px;text-align:center;
+  font-size:.7rem;color:#9fb4bd;font-weight:700;z-index:2;
+}
+.tube-side{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.chip{
+  display:flex;align-items:center;gap:5px;
+  background:#fff;border:1.5px solid var(--line);
+  border-radius:8px;padding:2px 4px 2px 6px;
+  font-size:.76rem;font-weight:700;line-height:1.45;
+}
+.chip .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.chip .cname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.chip .x{
+  margin-left:auto;border:0;background:transparent;color:#9aaeb4;
+  font-size:.8rem;font-weight:800;padding:0 3px;line-height:1;border-radius:5px;
+}
+.chip .x:hover{background:#fdecec;color:var(--ng)}
+.chip-empty{
+  border:1.5px dashed var(--line-strong);color:#93a8ae;background:transparent;
+  font-size:.75rem;font-weight:600;text-align:center;padding:8px 4px;border-radius:8px;
+  line-height:1.5;
+}
+.tube-result{
+  margin-top:9px;border-top:1.5px dashed var(--line);padding-top:8px;
+  font-size:.78rem;font-weight:700;display:flex;align-items:flex-start;gap:6px;line-height:1.5;
+}
+.tube-result .dot{width:12px;height:12px;border-radius:50%;flex:none;margin-top:4px;border:1px solid rgba(0,0,0,.15)}
+.tube-result .muted{color:#93a8ae;font-weight:600}
+.tube-add{
+  width:238px;height:266px;flex:none;
+  border:2.5px dashed var(--line-strong);border-radius:12px;
+  background:transparent;color:var(--ink-soft);
+  font-weight:800;font-size:.95rem;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+}
+.tube-add:hover{border-color:var(--accent);color:var(--accent-dark);background:#f3fbf9}
+.tube-add .plus{font-size:2rem;line-height:1}
+.tube-add:disabled{opacity:.4;cursor:not-allowed}
+
+/* ---------- ドラッグ用ゴースト ---------- */
+#ghost{
+  position:fixed;left:0;top:0;z-index:999;pointer-events:none;
+  display:none;transform:translate(-50%,-50%);
+  padding:7px 13px;border-radius:11px;
+  background:#fff;border:2.5px solid var(--accent);
+  box-shadow:0 8px 20px rgba(18,48,43,.28);
+  font-weight:800;font-size:.9rem;
+  display:none;align-items:center;gap:8px;
+}
+#ghost.on{display:flex}
+#ghost .swatch{width:18px;height:24px;border-radius:3px 3px 6px 6px;border:2px solid rgba(0,0,0,.18)}
+
+/* ---------- くらべる ---------- */
+.slots{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.slot{
+  flex:1 1 200px;min-width:190px;
+  border:2px dashed var(--line-strong);border-radius:12px;
+  padding:10px 12px;background:#fbfdfc;
+  display:flex;align-items:center;gap:10px;min-height:62px;
+}
+.slot.filled{border-style:solid;border-color:#f0cf8e;background:#fffaf0}
+.slot .slot-no{font-size:.76rem;font-weight:800;color:var(--ink-soft)}
+.slot .slot-name{font-weight:800;font-size:1rem}
+.slot .tube-label{width:34px;height:34px;font-size:1.05rem}
+.slot .placeholder{color:#93a8ae;font-weight:700;font-size:.9rem}
+.vs{font-weight:900;color:var(--accent-dark);font-size:1.1rem;flex:none}
+
+.cond-table{width:100%;border-collapse:collapse;margin-top:16px;font-size:.88rem}
+.cond-table th,.cond-table td{border:1.5px solid var(--line);padding:7px 10px;text-align:center}
+.cond-table thead th{background:#f1f7f5;font-weight:800;color:var(--accent-dark)}
+.cond-table tbody th{background:#fafcfb;font-weight:800;text-align:left;white-space:nowrap}
+.cond-table td.val{font-weight:700}
+.cond-table td.judge-same{background:#f4f8f7;color:var(--ink-soft);font-weight:700;white-space:nowrap}
+.cond-table td.judge-diff{background:#fff4e2;color:#a15c00;font-weight:800;white-space:nowrap}
+.cond-caption{margin:8px 0 0;font-size:.82rem;color:var(--ink-soft)}
+
+.claim-q{margin:20px 0 10px;font-weight:800;font-size:1rem}
+.claims{display:flex;flex-direction:column;gap:9px}
+.claim{
+  display:flex;align-items:flex-start;gap:10px;
+  border:2px solid var(--line);border-radius:11px;
+  background:#fff;padding:11px 14px;text-align:left;
+  font-weight:700;line-height:1.55;width:100%;
+}
+.claim:hover{border-color:var(--accent)}
+.claim.on{border-color:var(--accent);background:#f3fbf9;box-shadow:0 0 0 3px var(--accent-soft)}
+.claim .mark{
+  width:22px;height:22px;flex:none;margin-top:2px;
+  border:2.5px solid var(--line-strong);border-radius:50%;
+}
+.claim.on .mark{border-color:var(--accent);background:radial-gradient(circle,var(--accent) 0 46%,#fff 50%)}
+
+.verdict{margin-top:16px;border-radius:12px;padding:14px 16px;border:2px solid var(--line);background:#fafcfb}
+.verdict.ok{border-color:#9dd8b5;background:var(--ok-soft)}
+.verdict.ng{border-color:#f0b4b4;background:var(--ng-soft)}
+.verdict .v-head{display:flex;align-items:center;gap:9px;font-weight:900;font-size:1.05rem;margin-bottom:6px}
+.verdict.ok .v-head{color:var(--ok)}
+.verdict.ng .v-head{color:var(--ng)}
+.verdict .v-mark{font-size:1.5rem;line-height:1}
+.verdict p{margin:6px 0 0;font-size:.93rem;line-height:1.75}
+.verdict ul{margin:8px 0 0;padding-left:0}
+.verdict li{
+  position:relative;padding-left:1.25em;margin-top:5px;font-size:.92rem;line-height:1.7;
+}
+.verdict li::before{content:"・";position:absolute;left:0;font-weight:900}
+.verdict .obs{
+  margin-top:10px;background:rgba(255,255,255,.75);border-radius:9px;padding:8px 12px;
+  border:1.5px solid rgba(0,0,0,.06);
+}
+.verdict .obs div{font-size:.9rem;display:flex;align-items:center;gap:7px;line-height:1.7}
+.verdict .obs .dot{width:13px;height:13px;border-radius:50%;flex:none;border:1px solid rgba(0,0,0,.15)}
+
+.memo-label{display:block;margin:18px 0 7px;font-weight:800;font-size:.98rem}
+textarea.memo{
+  width:100%;min-height:92px;resize:vertical;
+  border:2px solid var(--line-strong);border-radius:11px;
+  padding:11px 13px;font:inherit;font-size:.95rem;line-height:1.7;
+  background:#fffdf7;outline:none;
+}
+textarea.memo:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.compare-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.compare-actions .hint{font-size:.85rem;color:var(--ink-soft)}
+.empty-note{color:var(--ink-soft);font-size:.93rem;margin:0;line-height:1.8}
+
+/* ---------- 記録 ---------- */
+.records{display:flex;flex-direction:column;gap:12px}
+.record{
+  border:2px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;
+}
+.record.ok{border-color:#9dd8b5}
+.record.ng{border-color:#f0b4b4}
+.rec-head{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:9px 13px;background:#f6faf9;border-bottom:1.5px solid var(--line);
+}
+.record.ok .rec-head{background:var(--ok-soft)}
+.record.ng .rec-head{background:var(--ng-soft)}
+.rec-no{
+  background:var(--accent);color:#fff;border-radius:7px;
+  font-size:.78rem;font-weight:800;padding:1px 9px;flex:none;
+}
+.rec-pair{font-weight:800;font-size:.98rem}
+.rec-verdict{font-weight:900;font-size:.9rem}
+.record.ok .rec-verdict{color:var(--ok)}
+.record.ng .rec-verdict{color:var(--ng)}
+.rec-head .spacer{margin-left:auto}
+.rec-body{padding:11px 14px;font-size:.92rem;line-height:1.75}
+.rec-body .rec-claim{font-weight:800}
+.rec-body .rec-tubes{margin-top:6px;font-size:.85rem;color:var(--ink-soft)}
+.rec-body .rec-memo{
+  margin-top:9px;padding:9px 12px;background:#fffdf7;
+  border:1.5px solid #eadfc0;border-radius:9px;white-space:pre-wrap;
+}
+.rec-body .rec-memo b{display:block;font-size:.78rem;color:#8a6a1f;margin-bottom:2px}
+
+/* ---------- 参考 ---------- */
+.legend{display:flex;flex-wrap:wrap;gap:14px}
+.legend-box{
+  flex:1 1 300px;border:1.5px solid var(--line);border-radius:11px;padding:12px 14px;background:#fbfdfc;
+}
+.legend-box h3{font-size:.95rem;font-weight:800;color:var(--accent-dark);margin-bottom:7px}
+.legend-box li{display:flex;align-items:center;gap:9px;font-size:.89rem;margin-top:5px;line-height:1.6}
+.legend-box .dot{width:15px;height:15px;border-radius:50%;flex:none;border:1px solid rgba(0,0,0,.15)}
+.footnote{margin:14px 0 0;font-size:.82rem;color:var(--ink-soft);line-height:1.75}
+
+#toast{
+  position:fixed;left:50%;bottom:26px;transform:translate(-50%,14px);
+  background:#15302b;color:#fff;padding:10px 20px;border-radius:999px;
+  font-weight:700;font-size:.9rem;z-index:998;
+  opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;
+  max-width:88vw;text-align:center;
+}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+.print-only{display:none}
+.name-print{display:none}
+
+/* ---------- スマホ ---------- */
+@media (max-width:640px){
+  body{font-size:15px}
+  .app-header h1{font-size:1.28rem}
+  .wrap{padding:0 12px 48px}
+  .tube{width:calc(50% - 7px)}
+  .tube-add{width:calc(50% - 7px);height:auto;min-height:150px;padding:20px 8px}
+  .glass{width:46px;height:150px}
+  .tube-main{flex-direction:column;align-items:center;gap:8px}
+  .tube-side{width:100%}
+  /* 画面上部に居すわるパレットを小さくする */
+  .palette-card .card-body{padding:10px 12px}
+  .palette{gap:7px}
+  .bottle{padding:6px 10px 6px 7px;font-size:.82rem;border-radius:10px}
+  .bottle small{display:none}
+  .bottle .swatch{width:17px;height:23px}
+  .bottle .swatch::before{top:-5px;width:7px;height:5px}
+  .palette-hint{margin-top:8px;font-size:.78rem;gap:6px}
+  .mode-bar{margin-top:8px;padding:7px 10px;font-size:.82rem}
+}
+
+/* ---------- 印刷 ---------- */
+@media print{
+  @page{size:A4;margin:12mm}
+  body{background:#fff;font-size:11pt}
+  .app-header{background:#fff;color:#000;box-shadow:none;border-bottom:2.5px solid #0f9b7e;padding:0 0 8px}
+  .app-header h1{font-size:15pt;color:#0a7561}
+  .app-header .lead,.badge{display:none}
+  .no-print{display:none !important}
+  .print-only{display:block !important}
+  .wrap{padding:0}
+  .card-body{padding:10px}
+  .rack{gap:10px}
+  .card{box-shadow:none;break-inside:avoid;border-color:#999;margin-top:10px}
+  .card > h2{background:#eee;color:#000;padding:6px 10px;font-size:11.5pt}
+  .palette-card{position:static}
+  .tube{break-inside:avoid;width:151px}
+  .glass{height:130px;width:44px}
+  .tube-main{flex-direction:column;align-items:center;gap:6px}
+  .tube-side{width:100%}
+  .record{break-inside:avoid}
+  #toast,#ghost{display:none !important}
+  .name-print{
+    display:flex;gap:26px;align-items:baseline;font-size:11pt;font-weight:700;margin-top:6px;
+  }
+  .name-print span{border-bottom:1px solid #666;min-width:12em;display:inline-block}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="wrap">
+    <div class="title-row">
+      <span class="badge">探Q実験2</span>
+      <h1>唾液のはたらき ― 対照実験ボード</h1>
+    </div>
+    <p class="lead">
+      課題：唾液によって、デンプンはどのような物質に分解されるのだろうか。<br>
+      試験管に液を入れて、<strong>どの試験管とどの試験管を比べれば何がわかるのか</strong>を考えよう。
+    </p>
+    <div class="name-print">
+      <div>組・番号：<span></span></div><div>名前：<span id="printName"></span></div>
+    </div>
+    <div class="header-tools no-print">
+      <label class="name-field">名前
+        <input id="studentName" type="text" placeholder="なまえ" maxlength="20" autocomplete="off">
+      </label>
+      <button class="btn btn-ghost" id="btnPrint">印刷する</button>
+      <button class="btn btn-ghost" id="btnImage">画像で保存</button>
+      <button class="btn btn-ghost" id="btnReset">はじめから</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ① 試薬パレット -->
+  <section class="card palette-card no-print">
+    <div class="card-body">
+      <div class="palette" id="palette">
+        <button class="bottle" data-item="starch">
+          <span class="swatch" style="background:#e9eef0"></span>
+          <span>デンプン溶液<small>白くにごった液</small></span>
+        </button>
+        <button class="bottle" data-item="saliva">
+          <span class="swatch" style="background:#ffe6b0"></span>
+          <span>唾液<small>調べたいもの</small></span>
+        </button>
+        <button class="bottle" data-item="water">
+          <span class="swatch" style="background:#d3e9ff"></span>
+          <span>水<small>唾液のかわり</small></span>
+        </button>
+        <button class="bottle" data-item="iodine">
+          <span class="swatch" style="background:#c98a3e"></span>
+          <span>ヨウ素溶液<small>デンプンを調べる</small></span>
+        </button>
+        <button class="bottle" data-item="benedict">
+          <span class="swatch" style="background:#2f74d0"></span>
+          <span>ベネジクト溶液<small>糖を調べる</small></span>
+        </button>
+      </div>
+      <p class="palette-hint">
+        <strong>使い方</strong>ボトルを試験管へ<strong>指でドラッグ</strong>／ボトル→試験管の順にタップでもOK
+      </p>
+      <div class="mode-bar" id="modeBar">
+        <span id="modeText"></span>
+        <button class="btn btn-sm" id="modeCancel">やめる</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ② 試験管ラック -->
+  <section class="card">
+    <h2><span class="step">STEP 1</span>試験管を用意する
+      <span class="note no-print">試験管は1〜6本まで増やせます</span>
+    </h2>
+    <div class="card-body">
+      <div class="rack" id="rack"></div>
+      <p class="footnote">
+        ※ 結果は「デンプン溶液に唾液または水を加えて40℃で10分あたため、そのあとヨウ素溶液を入れた／ベネジクト溶液を入れて加熱した」ときのものとして表示しています。
+      </p>
+    </div>
+  </section>
+
+  <!-- ③ くらべる -->
+  <section class="card no-print">
+    <h2><span class="step">STEP 2</span>2本をくらべて考える
+      <span class="note no-print">試験管をタップすると選べます（もう一度タップで解除）</span>
+    </h2>
+    <div class="card-body">
+      <div class="slots">
+        <div class="slot" id="slot0"><span class="slot-no">1本目</span><span class="placeholder">試験管をタップ</span></div>
+        <span class="vs">と</span>
+        <div class="slot" id="slot1"><span class="slot-no">2本目</span><span class="placeholder">試験管をタップ</span></div>
+      </div>
+
+      <div id="compareArea"></div>
+    </div>
+  </section>
+
+  <!-- ④ 記録 -->
+  <section class="card">
+    <h2><span class="step">STEP 3</span>わかったことのまとめ
+      <span class="note no-print" id="recCount"></span>
+    </h2>
+    <div class="card-body">
+      <div class="records" id="records"></div>
+    </div>
+  </section>
+
+  <!-- ⑤ 参考 -->
+  <section class="card">
+    <h2>実験のスキル：試薬の反応</h2>
+    <div class="card-body">
+      <div class="legend">
+        <div class="legend-box">
+          <h3>ヨウ素溶液 ― デンプンがあるか調べる</h3>
+          <ul>
+            <li><span class="dot" style="background:#3f2b7a"></span>青紫色になった → デンプンがある</li>
+            <li><span class="dot" style="background:#c98a3e"></span>変化なし（うすい茶色のまま） → デンプンがない</li>
+          </ul>
+        </div>
+        <div class="legend-box">
+          <h3>ベネジクト溶液 ― 糖があるか調べる（加熱する）</h3>
+          <ul>
+            <li><span class="dot" style="background:#a83a18"></span>赤褐色になった → 麦芽糖などの糖がある</li>
+            <li><span class="dot" style="background:#2f74d0"></span>青色のまま → 糖がない</li>
+          </ul>
+        </div>
+      </div>
+      <p class="footnote">
+        ベネジクト溶液はデンプンとは反応しないが、麦芽糖やブドウ糖には反応する。これらの物質をふくむ液体にベネジクト溶液を加えて加熱すると、青色だったものが黄色や赤褐色に変化する。
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<div id="ghost"><span class="swatch"></span><span class="gname"></span></div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   唾液のはたらき 対照実験ボード
+   ============================================================ */
+
+const SUB = {
+  starch:   {name:"デンプン溶液",   dot:"#aebdc4", swatch:"#e9eef0"},
+  saliva:   {name:"唾液",           dot:"#efa41c", swatch:"#ffe6b0"},
+  water:    {name:"水",             dot:"#3f8ff0", swatch:"#d3e9ff"},
+  iodine:   {name:"ヨウ素溶液",     dot:"#a9682a", swatch:"#c98a3e"},
+  benedict: {name:"ベネジクト溶液", dot:"#2f74d0", swatch:"#2f74d0"}
+};
+const REAGENTS = ["iodine", "benedict"];
+const MAX_TUBES = 6;
+const LABELS = "ABCDEF";
+
+const CLAIMS = [
+  {id:"digest", label:"唾液によって、デンプンがなくなった（分解された）"},
+  {id:"sugar",  label:"デンプンは、唾液によって糖（麦芽糖など）に変えられた"},
+  {id:"none",   label:"この2本を比べても、確かめられることはない"}
+];
+const claimLabel = id => (CLAIMS.find(c => c.id === id) || {}).label || "";
+
+const COLOR = {
+  empty:      null,
+  cloudy:     "#e6ecef",
+  clear:      "#dff0fa",
+  iodineOn:   "#3f2b7a",
+  iodineOff:  "#c98a3e",
+  benedictOn: "#a83a18",
+  benedictOff:"#2f74d0"
+};
+
+/* ---------- 状態 ---------- */
+const state = {
+  tubes: [],
+  nextId: 1,
+  picked: [],      // 比較のために選んだ試験管の id（最大2）
+  claim: null,
+  memo: "",
+  records: [],
+  mode: null,      // タップして選択中の試薬
+  name: ""
+};
+
+const $  = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+const tubeById   = id => state.tubes.find(t => t.id === id);
+const indexOfId  = id => state.tubes.findIndex(t => t.id === id);
+const labelOf    = id => LABELS[indexOfId(id)] || "?";
+
+function newTube(){ return {id: state.nextId++, starch:false, saliva:false, water:false, reagent:null}; }
+
+/* ---------- 反応のモデル ---------- */
+function analyze(t){
+  const digested   = t.starch && t.saliva;   // 唾液がデンプンを分解した
+  const starchLeft = t.starch && !t.saliva;  // デンプンが残っている
+  const sugar      = digested;               // できた糖
+  let color, text, done = false;
+
+  if(!t.reagent){
+    color = t.starch ? COLOR.cloudy : ((t.saliva || t.water) ? COLOR.clear : COLOR.empty);
+    text  = "試薬を入れると結果がわかります";
+  } else if(t.reagent === "iodine"){
+    done  = true;
+    color = starchLeft ? COLOR.iodineOn : COLOR.iodineOff;
+    text  = starchLeft ? "青紫色になった → デンプンがある"
+                       : "変化なし（うすい茶色のまま）→ デンプンがない";
+  } else {
+    done  = true;
+    color = sugar ? COLOR.benedictOn : COLOR.benedictOff;
+    text  = sugar ? "赤褐色になった → 糖がある"
+                  : "青色のまま → 糖がない";
+  }
+  return {digested, starchLeft, sugar, color, text, done};
+}
+
+const contentKeys = t => ["starch","saliva","water"].filter(k => t[k]).concat(t.reagent ? [t.reagent] : []);
+const volumeOf    = t => contentKeys(t).length;
+
+/* 条件のまとめ（表に使う） */
+const condStarch  = t => t.starch ? "入れた" : "入れていない";
+const condLiquid  = t => (t.saliva && t.water) ? "唾液と水の両方"
+                        : t.saliva ? "唾液" : t.water ? "水" : "入れていない";
+const condReagent = t => t.reagent ? SUB[t.reagent].name : "入れていない";
+
+/* ---------- 汎用 ---------- */
+let toastTimer = null;
+function toast(msg){
+  const el = $("#toast");
+  el.textContent = msg;
+  el.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("on"), 2000);
+}
+function esc(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* ============================================================
+   試験管の操作
+   ============================================================ */
+function addSubstance(id, key){
+  const t = tubeById(id);
+  if(!t) return;
+  if(REAGENTS.includes(key)){
+    if(t.reagent === key){ toast("試験管" + labelOf(id) + "には、すでに" + SUB[key].name + "が入っています"); return; }
+    if(t.reagent){ toast("1本の試験管に入れられる試薬は1つだけです"); return; }
+    t.reagent = key;
+  } else {
+    if(t[key]){ toast("試験管" + labelOf(id) + "には、すでに" + SUB[key].name + "が入っています"); return; }
+    t[key] = true;
+  }
+  toast("試験管" + labelOf(id) + "に" + SUB[key].name + "を入れました");
+  save(); renderAll();
+}
+
+function removeSubstance(id, key){
+  const t = tubeById(id);
+  if(!t) return;
+  if(REAGENTS.includes(key)) t.reagent = null; else t[key] = false;
+  save(); renderAll();
+}
+
+function clearTube(id){
+  const t = tubeById(id);
+  if(!t) return;
+  t.starch = t.saliva = t.water = false;
+  t.reagent = null;
+  save(); renderAll();
+}
+
+function removeTube(id){
+  state.tubes = state.tubes.filter(t => t.id !== id);
+  state.picked = state.picked.filter(p => p !== id);
+  resetCompareInput();
+  save(); renderAll();
+}
+
+function addTube(){
+  if(state.tubes.length >= MAX_TUBES){ toast("試験管は" + MAX_TUBES + "本までです"); return; }
+  state.tubes.push(newTube());
+  save(); renderAll();
+}
+
+function togglePick(id){
+  const i = state.picked.indexOf(id);
+  if(i >= 0) state.picked.splice(i, 1);
+  else {
+    if(state.picked.length >= 2) state.picked.shift();
+    state.picked.push(id);
+  }
+  resetCompareInput();
+  save(); renderAll();
+}
+
+function resetCompareInput(){ state.claim = null; state.memo = ""; }
+
+/* ============================================================
+   判定ロジック
+   ============================================================ */
+/**
+ * 2本が「正しい対照実験の組み合わせ」かどうかを調べる。
+ * 直すべき点があれば issues に日本語で入れて返す。
+ */
+function checkPair(a, b){
+  const issues = [];
+  const La = labelOf(a.id), Lb = labelOf(b.id);
+
+  // 試薬の条件
+  if(!a.reagent && !b.reagent){
+    issues.push("どちらの試験管にも試薬が入っていません。ヨウ素溶液かベネジクト溶液を入れないと、結果を見くらべられません。");
+  } else if(!a.reagent || !b.reagent){
+    issues.push("試験管" + (a.reagent ? Lb : La) + "に試薬が入っていません。2本とも同じ試薬を入れましょう。");
+  } else if(a.reagent !== b.reagent){
+    issues.push("2本で使っている試薬がちがいます（" + SUB[a.reagent].name + "と" + SUB[b.reagent].name + "）。調べていることがちがうので、この2本は比べられません。");
+  }
+
+  // デンプンの条件
+  if(!a.starch && !b.starch){
+    issues.push("どちらの試験管にもデンプン溶液が入っていません。これではデンプンのゆくえを調べられません。");
+  } else if(a.starch !== b.starch){
+    issues.push("試験管" + (a.starch ? Lb : La) + "にはデンプン溶液が入っていません。「同じにする条件」であるデンプン溶液をそろえましょう。");
+  }
+
+  // 変える条件（唾液か水か）
+  const mixed = [a, b].filter(t => t.saliva && t.water);
+  if(mixed.length){
+    issues.push("試験管" + mixed.map(t => labelOf(t.id)).join("・") + "に唾液と水の両方が入っています。唾液のはたらきだけを調べられません。");
+  } else if(a.saliva && b.saliva){
+    issues.push("どちらの試験管にも唾液が入っています。「変える条件」がないので、比べても唾液のはたらきはわかりません。");
+  } else if(!a.saliva && !b.saliva){
+    issues.push("どちらの試験管にも唾液が入っていません。唾液を入れた試験管と、入れていない試験管を比べましょう。");
+  } else {
+    const other = a.saliva ? b : a;
+    if(!other.water){
+      issues.push("試験管" + labelOf(other.id) + "に水が入っていません。唾液のかわりに同じ量の水を入れないと、液体の量という条件まで変わってしまいます。");
+    }
+  }
+
+  const ok = issues.length === 0;
+  const salivaTube = a.saliva ? a : b;
+  const waterTube  = a.saliva ? b : a;
+  return {ok, issues, kind: ok ? a.reagent : null, salivaTube, waterTube};
+}
+
+/**
+ * 生徒の主張（claim）に対する○×と解説をつくる。
+ */
+function judge(a, b, claim){
+  const chk = checkPair(a, b);
+  const v = {status:"ng", title:"", paras:[], bullets:[], obs:[]};
+
+  if(chk.ok){
+    const sal = chk.salivaTube, wat = chk.waterTube;
+    const rs = analyze(sal), rw = analyze(wat);
+    v.obs = [
+      {color: rs.color, text: "試験管" + labelOf(sal.id) + "（唾液）… " + rs.text},
+      {color: rw.color, text: "試験管" + labelOf(wat.id) + "（水）… "   + rw.text}
+    ];
+    const finding = chk.kind === "iodine"
+      ? "唾液を入れたほうだけデンプンがなくなったこと"
+      : "唾液を入れたほうにだけ糖ができたこと";
+
+    if((claim === "digest" && chk.kind === "iodine") || (claim === "sugar" && chk.kind === "benedict")){
+      v.status = "ok";
+      v.title  = "そのとおり！正しい比べ方です";
+      v.paras.push("「変える条件」は唾液を入れるか水を入れるかだけ。「同じにする条件」であるデンプン溶液と" + SUB[chk.kind].name + "はそろっています。");
+      v.paras.push(chk.kind === "iodine"
+        ? "唾液を入れたほうだけデンプンがなくなったので、デンプンをなくしたのは唾液のはたらきだといえます。"
+        : "唾液を入れたほうにだけ糖ができたので、デンプンは唾液によって糖（麦芽糖など）に変えられたといえます。");
+    } else if(claim === "none"){
+      v.title = "この2本は、正しく比べられる組み合わせです";
+      v.paras.push("「変える条件」が唾液か水かだけにそろっています。結果を見くらべると、" + finding + "がわかります。");
+    } else if(claim === "digest"){ // ベネジクトなのにデンプンの話
+      v.title = "おしい！比べ方は正しいけれど…";
+      v.paras.push("ベネジクト溶液は「糖があるか」を調べる試薬です。この2本からわかるのは、唾液があると糖ができるということです。");
+      v.paras.push("デンプンがなくなったことを確かめたいときは、2本ともヨウ素溶液を入れて比べましょう。");
+    } else { // sugar なのにヨウ素
+      v.title = "おしい！比べ方は正しいけれど…";
+      v.paras.push("ヨウ素溶液は「デンプンがあるか」を調べる試薬です。この2本からわかるのは、唾液があるとデンプンがなくなるということです。");
+      v.paras.push("デンプンが糖に変わったことを確かめたいときは、2本ともベネジクト溶液を入れて比べましょう。");
+    }
+  } else {
+    if(claim === "none"){
+      v.status = "ok";
+      v.title  = "そのとおり。この2本では確かめられません";
+      v.paras.push("次の点がそろっていないため、唾液のはたらきを確かめる対照実験になっていません。");
+    } else {
+      v.title = "この2本では確かめられません";
+      v.paras.push("対照実験は「変える条件は1つだけ、ほかの条件はすべて同じ」にします。次のところを直しましょう。");
+    }
+    v.bullets = chk.issues;
+  }
+  v.pairOk = chk.ok;
+  return v;
+}
+
+/* ============================================================
+   描画
+   ============================================================ */
+function renderAll(){
+  renderPaletteMode();
+  renderRack();
+  renderSlots();
+  renderCompare();
+  renderRecords();
+  $("#printName").textContent = state.name;
+}
+
+function renderPaletteMode(){
+  $$(".bottle").forEach(b => b.classList.toggle("selected", b.dataset.item === state.mode));
+  const bar = $("#modeBar");
+  bar.classList.toggle("on", !!state.mode);
+  if(state.mode) $("#modeText").textContent = "「" + SUB[state.mode].name + "」を選んでいます。入れたい試験管をタップしてください。";
+}
+
+function renderRack(){
+  const rack = $("#rack");
+  rack.innerHTML = "";
+
+  state.tubes.forEach((t, i) => {
+    const r = analyze(t);
+    const keys = contentKeys(t);
+    const pickIdx = state.picked.indexOf(t.id);
+    const el = document.createElement("div");
+    el.className = "tube" + (pickIdx >= 0 ? " picked" : "");
+    el.dataset.id = t.id;
+
+    const chips = keys.length
+      ? keys.map(k =>
+          '<li class="chip"><span class="dot" style="background:' + SUB[k].dot + '"></span>' +
+          '<span class="cname">' + esc(SUB[k].name) + '</span>' +
+          '<button class="x no-print" data-remove="' + k + '" aria-label="' + esc(SUB[k].name) + 'を取り除く">×</button></li>'
+        ).join("")
+      : '<li class="chip-empty">ボトルをここへ<br>ドラッグ</li>';
+
+    const fill = Math.min(volumeOf(t), 4) * 23;
+    const liquid = r.color
+      ? '<div class="liquid" style="height:' + fill + '%;background-color:' + r.color + '"></div>'
+      : '<div class="liquid" style="height:0"></div><span class="empty-mark">からっぽ</span>';
+
+    el.innerHTML =
+      '<div class="tube-head">' +
+        '<span class="tube-label">' + LABELS[i] + '</span>' +
+        (pickIdx >= 0 ? '<span class="pick-tag">' + (pickIdx + 1) + '本目</span>' : "") +
+        '<span class="spacer"></span>' +
+        '<button class="icon-btn no-print" data-act="clear" title="中身を消す">⟲</button>' +
+        '<button class="icon-btn no-print" data-act="remove" title="この試験管を消す">×</button>' +
+      '</div>' +
+      '<div class="tube-main">' +
+        '<div class="glass">' + liquid + '</div>' +
+        '<ul class="tube-side">' + chips + '</ul>' +
+      '</div>' +
+      '<div class="tube-result">' +
+        (r.done ? '<span class="dot" style="background:' + r.color + '"></span><span>' + esc(r.text) + '</span>'
+                : '<span class="muted">' + esc(r.text) + '</span>') +
+      '</div>';
+    rack.appendChild(el);
+  });
+
+  const add = document.createElement("button");
+  add.className = "tube-add no-print";
+  add.id = "btnAddTube";
+  add.innerHTML = '<span class="plus">＋</span><span>試験管をふやす</span>';
+  add.disabled = state.tubes.length >= MAX_TUBES;
+  rack.appendChild(add);
+}
+
+function renderSlots(){
+  [0, 1].forEach(i => {
+    const slot = $("#slot" + i);
+    const id = state.picked[i];
+    if(id == null){
+      slot.className = "slot";
+      slot.innerHTML = '<span class="slot-no">' + (i + 1) + '本目</span><span class="placeholder">試験管をタップ</span>';
+    } else {
+      const t = tubeById(id);
+      slot.className = "slot filled";
+      slot.innerHTML =
+        '<span class="tube-label">' + labelOf(id) + '</span>' +
+        '<span><span class="slot-no">' + (i + 1) + '本目</span><br>' +
+        '<span class="slot-name">試験管' + labelOf(id) + '</span></span>' +
+        '<span style="margin-left:auto;font-size:.8rem;color:var(--ink-soft);text-align:right;line-height:1.5">' +
+          esc(condLiquid(t)) + '<br>' + esc(condReagent(t)) + '</span>';
+    }
+  });
+}
+
+function renderCompare(){
+  const box = $("#compareArea");
+  if(state.picked.length < 2){
+    box.innerHTML = '<p class="empty-note" style="margin-top:16px">' +
+      '試験管を2本えらぶと、条件のちがいをくらべられます。<br>' +
+      '「変える条件」は1つだけ、そのほかの条件はすべて同じにするのが対照実験のきまりです。</p>';
+    return;
+  }
+  const a = tubeById(state.picked[0]), b = tubeById(state.picked[1]);
+  const La = labelOf(a.id), Lb = labelOf(b.id);
+
+  const row = (name, va, vb) => {
+    const same = va === vb;
+    return '<tr><th>' + name + '</th>' +
+      '<td class="val">' + esc(va) + '</td>' +
+      '<td class="val">' + esc(vb) + '</td>' +
+      '<td class="' + (same ? "judge-same" : "judge-diff") + '">' + (same ? "同じ" : "ちがう ←") + '</td></tr>';
+  };
+
+  box.innerHTML =
+    '<table class="cond-table"><thead><tr>' +
+      '<th>条件</th><th>試験管' + La + '</th><th>試験管' + Lb + '</th><th>くらべると</th>' +
+    '</tr></thead><tbody>' +
+      row("デンプン溶液", condStarch(a),  condStarch(b))  +
+      row("入れた液",     condLiquid(a),  condLiquid(b))  +
+      row("試薬",         condReagent(a), condReagent(b)) +
+    '</tbody></table>' +
+    '<p class="cond-caption">「ちがう」が<strong>「入れた液」の1か所だけ</strong>になっていれば、正しい対照実験です。</p>' +
+
+    '<p class="claim-q">この2本を比べると、どんなことがわかる？</p>' +
+    '<div class="claims" id="claims">' +
+      CLAIMS.map(c =>
+        '<button class="claim" data-claim="' + c.id + '"><span class="mark"></span><span>' + esc(c.label) + '</span></button>'
+      ).join("") +
+    '</div>' +
+
+    '<div id="verdictBox"></div>' +
+
+    '<label class="memo-label" for="memo">考察を書こう</label>' +
+    '<textarea class="memo" id="memo" placeholder="例：試験管' + La + 'と試験管' + Lb + 'を比べると、◯◯ということがわかる。なぜなら…"></textarea>' +
+    '<div class="compare-actions no-print">' +
+      '<button class="btn btn-primary" id="btnRecord" disabled>まとめに記録する</button>' +
+      '<span class="hint">わかることを選ぶと記録できます</span>' +
+    '</div>';
+
+  $("#memo").value = state.memo;
+  updateClaimUI();
+}
+
+function updateClaimUI(){
+  const claims = $("#claims");
+  if(!claims) return;
+  $$("#claims .claim").forEach(el => el.classList.toggle("on", el.dataset.claim === state.claim));
+
+  const vb = $("#verdictBox"), rec = $("#btnRecord");
+  if(!state.claim){ vb.innerHTML = ""; if(rec) rec.disabled = true; return; }
+  if(rec) rec.disabled = false;
+
+  const a = tubeById(state.picked[0]), b = tubeById(state.picked[1]);
+  const v = judge(a, b, state.claim);
+
+  vb.innerHTML =
+    '<div class="verdict ' + v.status + '">' +
+      '<div class="v-head"><span class="v-mark">' + (v.status === "ok" ? "○" : "✕") + '</span>' + esc(v.title) + '</div>' +
+      v.paras.map(p => '<p>' + esc(p) + '</p>').join("") +
+      (v.bullets.length ? '<ul>' + v.bullets.map(x => '<li>' + esc(x) + '</li>').join("") + '</ul>' : "") +
+      (v.obs.length
+        ? '<div class="obs">' + v.obs.map(o =>
+            '<div><span class="dot" style="background:' + o.color + '"></span><span>' + esc(o.text) + '</span></div>').join("") +
+          '</div>'
+        : "") +
+    '</div>';
+}
+
+function renderRecords(){
+  const wrap = $("#records");
+  $("#recCount").textContent = state.records.length ? state.records.length + "件" : "";
+  if(!state.records.length){
+    wrap.innerHTML = '<p class="empty-note">まだ記録がありません。STEP 2 で2本をくらべて「まとめに記録する」を押すと、ここにたまっていきます。</p>';
+    return;
+  }
+  wrap.innerHTML = state.records.map((r, i) =>
+    '<div class="record ' + (r.ok ? "ok" : "ng") + '">' +
+      '<div class="rec-head">' +
+        '<span class="rec-no">' + (i + 1) + '</span>' +
+        '<span class="rec-pair">試験管' + esc(r.aLabel) + ' と 試験管' + esc(r.bLabel) + ' をくらべる</span>' +
+        '<span class="rec-verdict">' + (r.ok ? "○ " : "✕ ") + esc(r.title) + '</span>' +
+        '<span class="spacer"></span>' +
+        '<button class="btn btn-sm no-print" data-del="' + i + '">消す</button>' +
+      '</div>' +
+      '<div class="rec-body">' +
+        '<div class="rec-claim">わかること：' + esc(r.claimLabel) + '</div>' +
+        '<div class="rec-tubes">' +
+          '試験管' + esc(r.aLabel) + '（' + esc(r.aDesc) + '）… ' + esc(r.aResult) + '<br>' +
+          '試験管' + esc(r.bLabel) + '（' + esc(r.bDesc) + '）… ' + esc(r.bResult) +
+        '</div>' +
+        (r.memo ? '<div class="rec-memo"><b>考察</b>' + esc(r.memo) + '</div>' : "") +
+      '</div>' +
+    '</div>'
+  ).join("");
+}
+
+/* ---------- 記録 ---------- */
+function describe(t){
+  const keys = contentKeys(t);
+  return keys.length ? keys.map(k => SUB[k].name).join("＋") : "からっぽ";
+}
+
+function addRecord(){
+  if(state.picked.length < 2 || !state.claim) return;
+  const a = tubeById(state.picked[0]), b = tubeById(state.picked[1]);
+  const v = judge(a, b, state.claim);
+  state.records.push({
+    aLabel: labelOf(a.id), bLabel: labelOf(b.id),
+    aDesc: describe(a),    bDesc: describe(b),
+    aResult: analyze(a).text, bResult: analyze(b).text,
+    aColor: analyze(a).color, bColor: analyze(b).color,
+    claimLabel: claimLabel(state.claim),
+    ok: v.status === "ok",
+    title: v.title,
+    memo: state.memo.trim()
+  });
+  state.picked = [];
+  resetCompareInput();
+  save(); renderAll();
+  toast("まとめに記録しました");
+}
+
+/* ============================================================
+   ドラッグ＆ドロップ（マウス・タッチ共通）
+   ============================================================ */
+const ghost = $("#ghost");
+let drag = null;
+
+function showGhost(key){
+  ghost.querySelector(".swatch").style.background = SUB[key].swatch;
+  ghost.querySelector(".gname").textContent = SUB[key].name;
+  ghost.classList.add("on");
+}
+function moveGhost(x, y){ ghost.style.left = x + "px"; ghost.style.top = (y - 34) + "px"; }
+function hideGhost(){ ghost.classList.remove("on"); }
+
+function tubeAt(x, y){
+  const el = document.elementFromPoint(x, y);
+  return el ? el.closest(".tube") : null;
+}
+function highlight(el){
+  $$(".tube.drop-hover").forEach(t => { if(t !== el) t.classList.remove("drop-hover"); });
+  if(el) el.classList.add("drop-hover");
+}
+
+const palette = $("#palette");
+
+palette.addEventListener("pointerdown", e => {
+  const b = e.target.closest(".bottle");
+  if(!b || drag) return;
+  drag = {item: b.dataset.item, x: e.clientX, y: e.clientY, started: false, pid: e.pointerId, el: b};
+  try { b.setPointerCapture(e.pointerId); } catch(_){}
+});
+
+palette.addEventListener("pointermove", e => {
+  if(!drag || e.pointerId !== drag.pid) return;
+  if(!drag.started){
+    if(Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 8) return;
+    drag.started = true;
+    showGhost(drag.item);
+  }
+  e.preventDefault();
+  moveGhost(e.clientX, e.clientY);
+  highlight(tubeAt(e.clientX, e.clientY));
+  // 画面のふちに近づいたらスクロール
+  const m = 90;
+  if(e.clientY > window.innerHeight - m) window.scrollBy(0, 14);
+  else if(e.clientY < m) window.scrollBy(0, -14);
+});
+
+function endDrag(e, cancelled){
+  if(!drag || e.pointerId !== drag.pid) return;
+  const d = drag; drag = null;
+  hideGhost(); highlight(null);
+  try { d.el.releasePointerCapture(e.pointerId); } catch(_){}
+  if(cancelled) return;
+  if(d.started){
+    const tube = tubeAt(e.clientX, e.clientY);
+    if(tube) addSubstance(Number(tube.dataset.id), d.item);
+  } else {
+    state.mode = (state.mode === d.item) ? null : d.item;
+    renderPaletteMode();
+  }
+}
+palette.addEventListener("pointerup",     e => endDrag(e, false));
+palette.addEventListener("pointercancel", e => endDrag(e, true));
+palette.addEventListener("contextmenu",   e => { if(drag) e.preventDefault(); });
+
+$("#modeCancel").addEventListener("click", () => { state.mode = null; renderPaletteMode(); });
+document.addEventListener("keydown", e => {
+  if(e.key === "Escape" && state.mode){ state.mode = null; renderPaletteMode(); }
+});
+
+/* ============================================================
+   クリック操作
+   ============================================================ */
+$("#rack").addEventListener("click", e => {
+  if(e.target.closest("#btnAddTube")){ addTube(); return; }
+
+  const tube = e.target.closest(".tube");
+  if(!tube) return;
+  const id = Number(tube.dataset.id);
+
+  const rm = e.target.closest("[data-remove]");
+  if(rm){ removeSubstance(id, rm.dataset.remove); return; }
+
+  const act = e.target.closest("[data-act]");
+  if(act){
+    if(act.dataset.act === "clear") clearTube(id);
+    else removeTube(id);
+    return;
+  }
+
+  if(state.mode) addSubstance(id, state.mode);
+  else togglePick(id);
+});
+
+$("#compareArea").addEventListener("click", e => {
+  const c = e.target.closest("[data-claim]");
+  if(c){ state.claim = (state.claim === c.dataset.claim) ? null : c.dataset.claim; save(); updateClaimUI(); return; }
+  if(e.target.closest("#btnRecord")) addRecord();
+});
+$("#compareArea").addEventListener("input", e => {
+  if(e.target.id === "memo"){ state.memo = e.target.value; save(); }
+});
+
+$("#records").addEventListener("click", e => {
+  const d = e.target.closest("[data-del]");
+  if(!d) return;
+  state.records.splice(Number(d.dataset.del), 1);
+  save(); renderRecords();
+});
+
+$("#studentName").addEventListener("input", e => {
+  state.name = e.target.value;
+  $("#printName").textContent = state.name;
+  save();
+});
+
+$("#btnPrint").addEventListener("click", () => window.print());
+$("#btnReset").addEventListener("click", () => {
+  if(!confirm("入力した内容をすべて消して、はじめからやり直しますか？")) return;
+  state.tubes = []; state.nextId = 1; state.picked = []; state.records = [];
+  state.mode = null; resetCompareInput();
+  state.tubes.push(newTube(), newTube());
+  save(); renderAll();
+  window.scrollTo(0, 0);
+});
+
+/* ============================================================
+   保存（リロード対策）
+   ============================================================ */
+const STORE_KEY = "saliva-board-v1";
+function save(){
+  try{
+    localStorage.setItem(STORE_KEY, JSON.stringify({
+      tubes: state.tubes, nextId: state.nextId, picked: state.picked,
+      claim: state.claim, memo: state.memo, records: state.records, name: state.name
+    }));
+  } catch(_){}
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(!raw) return false;
+    const d = JSON.parse(raw);
+    if(!d || !Array.isArray(d.tubes) || !d.tubes.length) return false;
+    state.tubes   = d.tubes.map(t => ({
+      id: Number(t.id), starch: !!t.starch, saliva: !!t.saliva, water: !!t.water,
+      reagent: REAGENTS.includes(t.reagent) ? t.reagent : null
+    })).slice(0, MAX_TUBES);
+    state.nextId  = Math.max(1, ...state.tubes.map(t => t.id + 1));
+    state.picked  = Array.isArray(d.picked) ? d.picked.filter(id => state.tubes.some(t => t.id === id)).slice(0, 2) : [];
+    state.claim   = CLAIMS.some(c => c.id === d.claim) ? d.claim : null;
+    state.memo    = typeof d.memo === "string" ? d.memo : "";
+    state.records = Array.isArray(d.records) ? d.records : [];
+    state.name    = typeof d.name === "string" ? d.name : "";
+    return true;
+  } catch(_){ return false; }
+}
+
+/* ============================================================
+   画像（PNG）で保存
+   ============================================================ */
+function exportImage(){
+  if(!state.tubes.length){ toast("試験管がありません"); return; }
+
+  const W = 1180, PAD = 44, INNER = W - PAD * 2;
+  const COLS = 4, GAP = 16, CARD_H = 232;
+  const CARD_W = (INNER - GAP * (COLS - 1)) / COLS;
+  const RH_HEAD = 38, RH_GAP = 26, RH_CLAIM = 24, RH_RES = 21, RH_MEMO = 24;
+
+  const c = document.createElement("canvas");
+  const ctx = c.getContext("2d");
+  const FONT = (size, weight) =>
+    (weight || 400) + " " + size + 'px "Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic",Meiryo,sans-serif';
+
+  const NO_HEAD = "、。，．）」』】！？・ーぁぃぅぇぉっゃゅょ";
+  function wrap(text, maxW, font){
+    ctx.font = font;
+    const out = [];
+    String(text == null ? "" : text).split("\n").forEach(para => {
+      if(!para){ out.push(""); return; }
+      let line = "";
+      for(const ch of para){
+        const test = line + ch;
+        if(line && ctx.measureText(test).width > maxW){
+          if(NO_HEAD.indexOf(ch) >= 0){ out.push(test); line = ""; continue; }
+          out.push(line); line = ch;
+        } else line = test;
+      }
+      if(line) out.push(line);
+    });
+    return out;
+  }
+
+  /* --- 先に記録欄の高さを測る --- */
+  const blocks = state.records.map(r => {
+    const claimLines = wrap("わかること：" + r.claimLabel, INNER - 32, FONT(16, 700));
+    const resLines   = wrap("試験管" + r.aLabel + "（" + r.aDesc + "）… " + r.aResult + "\n" +
+                            "試験管" + r.bLabel + "（" + r.bDesc + "）… " + r.bResult, INNER - 32, FONT(14));
+    const memoLines  = r.memo ? wrap(r.memo, INNER - 56, FONT(15)) : [];
+    const T = RH_HEAD + RH_GAP + claimLines.length * RH_CLAIM + 2 + resLines.length * RH_RES;
+    const h = T + (memoLines.length ? 12 + 22 + memoLines.length * RH_MEMO + 22 : 0) + 10;
+    return {r, claimLines, resLines, memoLines, T, h};
+  });
+
+  const rows = Math.ceil(state.tubes.length / COLS);
+  const footLines = wrap("※ 結果は「デンプン溶液に唾液または水を加えて40℃で10分あたため、そのあとヨウ素溶液を入れた／ベネジクト溶液を入れて加熱した」ときのものです。",
+                         INNER, FONT(13));
+
+  let H = PAD + 36 + 26 + 30 + 24 + 34;                       // ヘッダー＋見出し
+  H += rows * (CARD_H + GAP) + 16;                            // 試験管
+  H += 34;                                                    // 見出し
+  H += blocks.length ? blocks.reduce((s, b) => s + b.h + 14, 0) : 40;
+  H += 16 + footLines.length * 20 + PAD;
+
+  const DPR = 2;
+  c.width = W * DPR; c.height = Math.ceil(H) * DPR;
+  ctx.scale(DPR, DPR);
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H);
+
+  function roundRect(x, y, w, h, r){
+    ctx.beginPath();
+    if(ctx.roundRect){ ctx.roundRect(x, y, w, h, r); return; }
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y,     x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x,     y + h, r);
+    ctx.arcTo(x,     y + h, x,     y,     r);
+    ctx.arcTo(x,     y,     x + w, y,     r);
+    ctx.closePath();
+  }
+  function tubePath(x, y, w, h){
+    const r = w / 2;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, y + h - r);
+    ctx.arc(x + r, y + h - r, r, Math.PI, 0, true);
+    ctx.lineTo(x + w, y);
+  }
+  function drawTube(x, y, w, h, color, ratio){
+    ctx.save();
+    tubePath(x, y, w, h); ctx.closePath();
+    ctx.fillStyle = "#f2f7f9"; ctx.fill();
+    if(color && ratio > 0){
+      ctx.save(); ctx.clip();
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y + h - h * ratio, w, h * ratio);
+      ctx.restore();
+    }
+    tubePath(x, y, w, h);
+    ctx.lineWidth = 2.5; ctx.strokeStyle = "#b9cbd4"; ctx.stroke();
+    ctx.restore();
+  }
+  function sectionHead(title, y){
+    ctx.fillStyle = "#0f9b7e"; roundRect(PAD, y - 15, 6, 22, 3); ctx.fill();
+    ctx.fillStyle = "#0a7561"; ctx.font = FONT(19, 800);
+    ctx.fillText(title, PAD + 16, y + 3);
+  }
+
+  /* --- ヘッダー --- */
+  ctx.fillStyle = "#0f9b7e"; ctx.fillRect(0, 0, W, 8);
+  let y = PAD + 22;
+  ctx.fillStyle = "#15302b"; ctx.font = FONT(25, 800);
+  ctx.fillText("探Q実験2　唾液のはたらき ― 対照実験ワークシート", PAD, y);
+  y += 26;
+  ctx.fillStyle = "#57706c"; ctx.font = FONT(14);
+  ctx.fillText("課題：唾液によって、デンプンはどのような物質に分解されるのだろうか。", PAD, y);
+  y += 30;
+  const d = new Date();
+  const stamp = d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate();
+  ctx.fillStyle = "#15302b"; ctx.font = FONT(15, 700);
+  ctx.fillText("名前：" + (state.name || "＿＿＿＿＿＿") + "　　　日付：" + stamp, PAD, y);
+  y += 12;
+  ctx.strokeStyle = "#d6e5e0"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(W - PAD, y); ctx.stroke();
+  y += 34;
+
+  /* --- 試験管 --- */
+  sectionHead("用意した試験管", y);
+  y += 24;
+  state.tubes.forEach((t, i) => {
+    const col = i % COLS, row = Math.floor(i / COLS);
+    const x = PAD + col * (CARD_W + GAP);
+    const cy = y + row * (CARD_H + GAP);
+    const r = analyze(t);
+
+    ctx.fillStyle = "#fbfdfc"; ctx.strokeStyle = "#d6e5e0"; ctx.lineWidth = 2;
+    roundRect(x, cy, CARD_W, CARD_H, 12); ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = "#0f9b7e"; roundRect(x + 14, cy + 12, 30, 30, 9); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.font = FONT(17, 800);
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(LABELS[i], x + 29, cy + 28);
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+
+    drawTube(x + 16, cy + 54, 42, 118, r.color, Math.min(volumeOf(t), 4) * 0.23);
+
+    const keys = contentKeys(t);
+    let ty = cy + 68;
+    ctx.font = FONT(13, 700);
+    if(!keys.length){ ctx.fillStyle = "#93a8ae"; ctx.fillText("からっぽ", x + 72, ty); }
+    keys.forEach(k => {
+      ctx.fillStyle = SUB[k].dot;
+      ctx.beginPath(); ctx.arc(x + 77, ty - 4, 4.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#15302b";
+      ctx.fillText(SUB[k].name, x + 87, ty);
+      ty += 22;
+    });
+
+    ctx.strokeStyle = "#d6e5e0"; ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(x + 14, cy + 182); ctx.lineTo(x + CARD_W - 14, cy + 182); ctx.stroke();
+    ctx.setLineDash([]);
+    if(r.done){
+      ctx.fillStyle = r.color;
+      ctx.beginPath(); ctx.arc(x + 21, cy + 198, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,.15)"; ctx.lineWidth = 1; ctx.stroke();
+    }
+    const rl = wrap(r.text, CARD_W - (r.done ? 46 : 28), FONT(12.5, 700)).slice(0, 2);
+    ctx.fillStyle = r.done ? "#15302b" : "#93a8ae";
+    ctx.font = FONT(12.5, 700);
+    rl.forEach((l, li) => ctx.fillText(l, x + (r.done ? 34 : 16), cy + 202 + li * 17));
+  });
+  y += rows * (CARD_H + GAP) + 16;
+
+  /* --- 記録 --- */
+  sectionHead("くらべてわかったこと", y);
+  y += 24;
+  if(!blocks.length){
+    ctx.fillStyle = "#57706c"; ctx.font = FONT(14);
+    ctx.fillText("記録はまだありません。", PAD, y + 14);
+    y += 40;
+  }
+  blocks.forEach((b, i) => {
+    const r = b.r, x = PAD, w = INNER, h = b.h;
+    const edge = r.ok ? "#9dd8b5" : "#f0b4b4";
+    const band = r.ok ? "#e6f6ec" : "#fdecec";
+
+    ctx.save();
+    roundRect(x, y, w, h, 12); ctx.clip();
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = band;      ctx.fillRect(x, y, w, RH_HEAD);
+    ctx.restore();
+    ctx.strokeStyle = edge; ctx.lineWidth = 2;
+    roundRect(x, y, w, h, 12); ctx.stroke();
+
+    ctx.fillStyle = "#0f9b7e"; roundRect(x + 14, y + 10, 26, 19, 7); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.font = FONT(13, 800);
+    ctx.textAlign = "center"; ctx.fillText(String(i + 1), x + 27, y + 24); ctx.textAlign = "left";
+
+    ctx.fillStyle = "#15302b"; ctx.font = FONT(16, 800);
+    ctx.fillText("試験管" + r.aLabel + " と 試験管" + r.bLabel + " をくらべる", x + 50, y + 25);
+    ctx.fillStyle = r.ok ? "#0d7a42" : "#c22f2f"; ctx.font = FONT(14, 800);
+    ctx.textAlign = "right";
+    ctx.fillText((r.ok ? "○ " : "✕ ") + r.title, x + w - 14, y + 25);
+    ctx.textAlign = "left";
+
+    let ty = y + RH_HEAD + RH_GAP;
+    ctx.fillStyle = "#15302b"; ctx.font = FONT(16, 700);
+    b.claimLines.forEach(l => { ctx.fillText(l, x + 16, ty); ty += RH_CLAIM; });
+    ty += 2;
+    ctx.fillStyle = "#57706c"; ctx.font = FONT(14);
+    b.resLines.forEach(l => { ctx.fillText(l, x + 16, ty); ty += RH_RES; });
+
+    if(b.memoLines.length){
+      const top = y + b.T + 8;
+      const boxH = (y + h - 12) - top;
+      ctx.fillStyle = "#fffdf7"; ctx.strokeStyle = "#eadfc0"; ctx.lineWidth = 1.5;
+      roundRect(x + 16, top, w - 32, boxH, 9); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#8a6a1f"; ctx.font = FONT(12, 800);
+      ctx.fillText("考察", x + 28, top + 17);
+      ctx.fillStyle = "#15302b"; ctx.font = FONT(15);
+      let my = top + 41;
+      b.memoLines.forEach(l => { ctx.fillText(l, x + 28, my); my += RH_MEMO; });
+    }
+    y += h + 14;
+  });
+
+  /* --- 注記 --- */
+  y += 16;
+  ctx.fillStyle = "#8199a0"; ctx.font = FONT(13);
+  footLines.forEach(l => { ctx.fillText(l, PAD, y); y += 20; });
+
+  c.toBlob(blob => {
+    if(!blob){ toast("画像を作れませんでした"); return; }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "唾液のはたらき_" + (state.name ? state.name.replace(/[\\/:*?"<>|]/g, "") + "_" : "") + "ワークシート.png";
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 3000);
+    toast("画像を保存しました");
+  }, "image/png");
+}
+$("#btnImage").addEventListener("click", exportImage);
+
+/* ============================================================
+   起動
+   ============================================================ */
+if(!load()) state.tubes.push(newTube(), newTube());
+$("#studentName").value = state.name;
+renderAll();
+</script>
+</body>
+</html>
