@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>中学校理科 授業ツール</title>
+<meta name="description" content="ブラウザだけで動く、中学校理科の授業用ツール集。">
+<style>
+:root{color-scheme:light}
+*{box-sizing:border-box}
+body{
+  margin:0;background:#f2f7f5;color:#15302b;
+  font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,system-ui,sans-serif;
+  line-height:1.75;
+}
+header{background:linear-gradient(135deg,#0f9b7e,#12b08c);color:#fff;padding:30px 0 32px}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px 64px}
+header .wrap{padding-bottom:0}
+h1{margin:0;font-size:1.6rem;font-weight:800;letter-spacing:.02em}
+header p{margin:10px 0 0;opacity:.95;font-size:.95rem}
+h2{font-size:1.05rem;font-weight:800;color:#0a7561;margin:34px 0 12px}
+.card{
+  display:block;margin-top:14px;padding:18px 20px;
+  background:#fff;border:1.5px solid #d6e5e0;border-radius:14px;
+  box-shadow:0 2px 8px rgba(18,48,43,.09);
+  text-decoration:none;color:inherit;
+  transition:border-color .12s, box-shadow .12s, transform .06s;
+}
+.card:hover{border-color:#0f9b7e;box-shadow:0 4px 14px rgba(15,155,126,.18)}
+.card:active{transform:translateY(1px)}
+.card .unit{
+  display:inline-block;background:#e4f5f0;color:#0a7561;
+  border-radius:999px;padding:1px 11px;font-size:.76rem;font-weight:800;letter-spacing:.03em;
+}
+.card h3{margin:9px 0 4px;font-size:1.15rem;font-weight:800;color:#0a7561}
+.card p{margin:0;font-size:.92rem;color:#4a6360}
+.note{
+  margin-top:28px;padding:14px 18px;background:#fff;
+  border:1.5px solid #d6e5e0;border-radius:12px;font-size:.88rem;color:#4a6360;
+}
+.note b{color:#15302b}
+@media (max-width:640px){ h1{font-size:1.3rem} .wrap{padding:0 14px 48px} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>中学校理科 授業ツール</h1>
+    <p>ブラウザだけで動きます。インストールも通信も必要ありません。</p>
+  </div>
+</header>
+<div class="wrap">
+  <h2>3章 動物の体のつくりとはたらき</h2>
+  <a class="card" href="tools/saliva-digestion/">
+    <span class="unit">探Q実験2</span>
+    <h3>唾液のはたらき ― 実験の計画を立てよう</h3>
+    <p>試験管に液をドラッグして対照実験を組み立て、「どんな結果が出たら何がいえるか」を予想するツール。実験前の「計画」の授業で使います。</p>
+  </a>
+
+  <div class="note">
+    <b>タブレットで使うとき</b>：このページのリンクをそのまま配ってください。
+    Google ドライブに置いた HTML ファイルは、クリックしてもページとしては動きません
+    （ドライブのプレビューは JavaScript を止めてしまうためです）。
+  </div>
+</div>
+</body>
+</html>

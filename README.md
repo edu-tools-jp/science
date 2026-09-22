@@ -4,6 +4,27 @@
 どのツールも HTML ファイル 1 枚で完結していて、インターネット接続や
 インストールは不要です。ファイルをダブルクリックすれば開きます。
 
+## 公開のしかた（GitHub Pages）
+
+Google ドライブに HTML ファイルを置いても、クリックしてページとして開くことは
+できません。ドライブは HTML を「文書」として扱い、プレビューでは JavaScript が
+止められてしまうためです（ドライブの Web ホスティング機能は 2016 年に終了しました）。
+生徒に配るときは、GitHub Pages で URL にして配布してください。
+
+1. GitHub のリポジトリで **Settings → Pages** を開く
+2. Source を **Deploy from a branch**、Branch をこのリポジトリのブランチ、
+   フォルダを **/(root)** にして **Save**
+3. 1〜2 分待つと次の URL で開けるようになります
+
+   - トップページ … `https://edu-tools-jp.github.io/science/`
+   - 唾液のはたらき … `https://edu-tools-jp.github.io/science/tools/saliva-digestion/`
+
+この URL をそのまま Google Classroom やドライブのショートカットで配れば、
+タブレットでもそのまま動きます。
+
+設定なしで済ませたい場合は、ドライブからファイルを**ダウンロードしてから開く**
+方法でも動きます（ダウンロードさえすれば、あとは通信不要です）。
+
 ## ツール一覧
 
 | ツール | 単元 | ファイル |
