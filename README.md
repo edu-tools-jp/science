@@ -17,7 +17,7 @@ Google ドライブに HTML ファイルを置いても、クリックしてペ�
 3. 1〜2 分待つと次の URL で開けるようになります
 
    - トップページ … `https://edu-tools-jp.github.io/science/`
-   - 唾液のはたらき … `https://edu-tools-jp.github.io/science/tools/saliva-digestion/`
+   - 唾液のはたらき … `https://edu-tools-jp.github.io/science/daeki/`
 
 この URL をそのまま Google Classroom やドライブのショートカットで配れば、
 タブレットでもそのまま動きます。
@@ -29,7 +29,7 @@ Google ドライブに HTML ファイルを置いても、クリックしてペ�
 
 | ツール | 単元 | ファイル |
 | --- | --- | --- |
-| [唾液のはたらき 実験の計画を立てよう](tools/saliva-digestion/index.html) | 3章 動物の体のつくりとはたらき／探Q実験2 | `tools/saliva-digestion/index.html` |
+| [唾液のはたらき 実験の計画を立てよう](daeki/index.html) | 3章 動物の体のつくりとはたらき／探Q実験2 | `daeki/index.html` |
 
 ---
 
