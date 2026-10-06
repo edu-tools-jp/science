@@ -905,7 +905,7 @@ function tubeColor(t){
   if(t.vol<=0) return null;
   if(isUnknown(t)) return {bg:'', unknown:true};
   if(t.benedict) return {bg:'linear-gradient(180deg,#5fb0ea,#3b8fd6)'};   // ベネジクト溶液そのものの色（加熱前）
-  if(t.starch) return {bg:'linear-gradient(180deg,#f2f5f9,#dde5ee)'};
+  if(t.starch) return {bg:'linear-gradient(180deg,#e2e7ed,#bcc6d2)'};   // デンプンのり（白くにごった液）。ガラスと見分けがつく濃さにする
   return {bg:'linear-gradient(180deg,#e2f2fb,#c8e5f6)'};
 }
 function tubeCaption(t){
