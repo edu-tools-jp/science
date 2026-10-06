@@ -300,6 +300,29 @@ button{font-family:inherit; font-size:inherit; cursor:pointer}
 .item.hint{animation:pulse 1.5s infinite;border-color:var(--accent)}
 .item.dim{opacity:.5}
 .item svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- ドラッグ＆ドロップ ----------
+   棚は実験台の右にあるので、横に動かすと道具を持ち上げ、
+   縦のスワイプはこれまでどおり画面のスクロールに使える（pan-y） */
+.item{touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:grab}
+.item.dragging{opacity:.5}
+#dragGhost{
+  position:fixed;left:0;top:0;z-index:90;pointer-events:none;display:none;transform:translate(-50%,-50%);
+  align-items:center;gap:8px;background:#fff;border:2px solid var(--accent);border-radius:10px;
+  padding:6px 12px;box-shadow:0 8px 20px rgba(16,50,62,.28);font-weight:700;font-size:13px;color:var(--ink);
+}
+#dragGhost.on{display:flex}
+#dragGhost svg{width:18px;height:18px;fill:none;stroke:var(--accent-d);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+[data-target].drop-hover{outline:3px solid var(--accent);outline-offset:3px}
+.station.drop-hover{background:#fff}
+body.is-dragging .toast{pointer-events:none}   /* ドラッグ中はトーストの下にも置けるように */
+body.is-dragging{cursor:grabbing}
+/* 3列表示のときは棚を画面に固定し、棚の中だけスクロールする。
+   こうしないと下の方の道具（操作など）と実験台が同時に画面に入らず、ドラッグできない */
+@media (min-width:1181px){
+  .shelfpanel{position:sticky;top:calc(var(--toph,66px) + 10px);
+    max-height:calc(100vh - var(--toph,66px) - 76px);overflow-y:auto}
+}
 .hold{
   background:#fff;border:1px solid var(--line);border-radius:10px;padding:7px 12px;font-size:12.5px;
   display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:var(--shadow);
@@ -496,12 +519,12 @@ table.sum td.neg{background:#f5f8fa}
 
     <div class="hold" id="hold">
       <span>選択中の道具：<b id="holdName">なし</b></span>
-      <span style="font-size:11.5px;color:var(--muted)">道具や薬品を選んでから、使う場所をクリック（Escで選択解除）</span>
+      <span style="font-size:11.5px;color:var(--muted)">道具や薬品を、使う場所までドラッグ（選んでから場所をクリックしてもOK・Escで選択解除）</span>
     </div>
   </section>
 
   <!-- 右：器具・薬品 -->
-  <aside class="panel">
+  <aside class="panel shelfpanel">
     <h2 class="ph">器具・薬品・操作</h2>
     <div id="shelf"></div>
   </aside>
@@ -560,6 +583,7 @@ table.sum td.neg{background:#f5f8fa}
 </section>
 
 <div class="toastwrap" id="toasts"></div>
+<div id="dragGhost"></div>
 
 <div class="mask" id="mask"><div class="modal" id="modal"></div></div>
 
@@ -667,9 +691,9 @@ const STEPS = [
   t:'試験管A′・B′を用意する', d:'新しい試験管A′・B′を試験管立てに立てる。'},
 
  {id:'splitA', g:'g11', p:2, tool:'split', target:'A', target2:'A2',
-  t:'Aの液を半分A′へ', d:'試験管Aの液を、A′に半分ずつ分ける。（「液を半分に分ける」を選び、Aをクリック）'},
+  t:'Aの液を半分A′へ', d:'試験管Aの液を、A′に半分ずつ分ける。（「液を半分に分ける」をAまでドラッグ）'},
  {id:'splitB', g:'g11', p:2, tool:'split', target:'B', target2:'B2',
-  t:'Bの液を半分B′へ', d:'試験管Bの液を、B′に半分ずつ分ける。（「液を半分に分ける」を選び、Bをクリック）',
+  t:'Bの液を半分B′へ', d:'試験管Bの液を、B′に半分ずつ分ける。（「液を半分に分ける」をBまでドラッグ）',
   why:'同じ液を2つに分けて、ヨウ素溶液とベネジクト溶液の両方で調べる。'},
 
  {id:'iodineA', g:'g12', p:2, tool:'iodine', target:'A', t:'Aにヨウ素溶液', d:'試験管Aにヨウ素溶液を2、3滴加え、色の変化を見る。'},
@@ -832,6 +856,15 @@ function renderShelf(){
   });
   $('#shelf').innerHTML=html;
   $('#holdName').textContent = S.sel? TOOLS[S.sel].n : 'なし';
+  revealHint();
+}
+/* 棚が固定表示でスクロールしているとき、光っている道具が見えるように棚だけを動かす */
+function revealHint(){
+  const p=$('.shelfpanel'), h=$('#shelf .item.hint');
+  if(!h || p.scrollHeight<=p.clientHeight) return;
+  const pr=p.getBoundingClientRect(), hr=h.getBoundingClientRect();
+  if(hr.top<pr.top+40) p.scrollTop-=pr.top+40-hr.top;
+  else if(hr.bottom>pr.bottom-8) p.scrollTop+=hr.bottom-(pr.bottom-8);
 }
 
 /* =========================================================
@@ -919,12 +952,17 @@ function render(){
   // 記録・確認カードの表示
   $('#recordCard').hidden = !!nextStep();
   $('#considerCard').hidden = !!nextStep();
-  // ステーションのヒント
+  renderStationHints();
+}
+/* ステーションのヒント（ガイドモードで、選んだ道具を使う場所を光らせる） */
+function renderStationHints(){
   $$('.station').forEach(s=>s.classList.remove('hit'));
   if(S.mode==='guide' && S.sel){
     pending().forEach(s=>{
-      if(s.tool!==S.sel||!s.target) return;
-      const st=$('.station[data-target="'+s.target+'"]');
+      if(s.tool!==S.sel) return;
+      // 対象のいらない道具は、ドラッグするときの置き場所を光らせる
+      const st = s.target ? $('.station[data-target="'+s.target+'"]')
+               : s.tool==='goggles' ? $('#stMouth') : s.tool==='timer' ? $('#stBath') : null;
       if(st) st.classList.add('hit');
     });
   }
@@ -953,7 +991,7 @@ function diagnose(tool,target,target2){
     return ['warn','その試験管はまだ用意していません。','必要になったときに、試験管A′・B′を試験管立てに立てる。'];
 
   if(tool==='burner'){
-    if(!T) return ['warn','加熱する試験管を選ぼう。','ガスバーナーを選んでから、加熱する試験管をクリックする。'];
+    if(!T) return ['warn','加熱する試験管を選ぼう。','ガスバーナーを、加熱する試験管までドラッグする。'];
     if(T.iodine) return ['warn','ヨウ素溶液を加えた試験管は加熱しません。','加熱するのは、ベネジクト溶液を加えたA′・B′だけ。'];
     if(!T.benedict) return ['warn','先にベネジクト溶液を加えよう。','ベネジクト溶液は、加えて加熱してはじめて反応する。'];
     if(!T.stone) return ['danger','沸騰石を入れずに加熱してはいけません。','急に沸騰（突沸）して、熱い液が飛び出す危険がある。加熱の前に必ず入れる。'];
@@ -1285,6 +1323,27 @@ $('#mask').addEventListener('click',e=>{ if(e.target.id==='mask' && !S.busy) clo
 /* =========================================================
    クリック処理
    ========================================================= */
+/* 道具を置いた（クリックした）場所から、操作の対象を決める。
+   試験管A′・B′は、試験管立ての中ならどこに置いてもよい
+   （立ててあるAやBの上に置いても「試験管立て」として扱う） */
+function targetOf(tool,el){
+  if(tool==='newtube' && el.closest('#stRack')) return {target:'rack', el:$('#stRack')};
+  const t=el.closest('[data-target]');
+  return t ? {target:t.dataset.target, el:t} : null;
+}
+/* 道具を対象に使う（クリックでもドラッグでもここを通る） */
+function useOn(tool,target){
+  // 「液を半分に分ける」は、もとの試験管に使うだけ（A→A′、B→B′）
+  if(tool==='split'){
+    const PAIR={A:'A2',B:'B2'};
+    if(!PAIR[target]){
+      toast('warn','分けるもとの試験管に使おう。','AまたはBまでドラッグすると、その液の半分がA′（B′）に移ります。');
+      return;
+    }
+    attempt('split',target,PAIR[target]); return;
+  }
+  attempt(tool,target);
+}
 document.addEventListener('click',e=>{
   const item=e.target.closest('.item');
   if(item){
@@ -1305,18 +1364,106 @@ document.addEventListener('click',e=>{
     }
     return;
   }
-  // 「液を半分に分ける」は、もとの試験管を1回クリックするだけ（A→A′、B→B′）
-  if(S.sel==='split'){
-    const PAIR={A:'A2',B:'B2'};
-    if(!PAIR[target]){
-      toast('warn','分けるもとの試験管をクリックしよう。','AまたはBをクリックすると、その液の半分がA′（B′）に移ります。');
-      return;
-    }
-    attempt('split',target,PAIR[target]); return;
-  }
-  attempt(S.sel,target);
+  const hit=targetOf(S.sel,e.target);
+  if(hit) useOn(S.sel,hit.target);
 });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ S.sel=null; render(); }});
+
+/* =========================================================
+   ドラッグ＆ドロップ（マウス・指）
+   棚の道具を、使う場所までドラッグする。選んでから場所をクリックする
+   操作もそのまま使える（計画ツールと同じ操作感）。
+   どちらも useOn() → attempt() を通るので、手順の判定は共通。
+   ========================================================= */
+let drag=null, suppressClick=null;
+
+/* マウスでドラッグして離すと、ブラウザがつかんだ道具のボタンに click を続けて送ってくる。
+   それで道具が「選択中」に戻らないよう、離した瞬間のその click だけを捨てる。
+   （その直後のタップや、ドロップで開く加熱ダイアログのクリックは捨てない） */
+document.addEventListener('click',e=>{
+  const sc=suppressClick; if(!sc) return;
+  const t=e.target;
+  if(t===sc.el || sc.el.contains(t) || (t.closest && t.closest('#shelf'))){
+    e.stopImmediatePropagation(); e.preventDefault(); suppressClick=null;
+  }
+},true);
+
+/* 指（マウス）の下にある置き場所。対象のいらない道具は、置き場所が決まっている */
+function dropAt(tool,x,y){
+  const el=document.elementFromPoint(x,y);
+  if(!el) return null;
+  if(tool==='goggles') return el.closest('#stMouth') ? {target:null, el:$('#stMouth')} : null;
+  if(tool==='timer')   return el.closest('#stBath')  ? {target:null, el:$('#stBath')}  : null;
+  return targetOf(tool,el);
+}
+function markDrop(el){
+  $$('.drop-hover').forEach(x=>{ if(x!==el) x.classList.remove('drop-hover'); });
+  if(el) el.classList.add('drop-hover');
+}
+
+$('#shelf').addEventListener('pointerdown',e=>{
+  const item=e.target.closest('.item');
+  if(!item || drag || S.busy || e.button>0) return;
+  drag={tool:item.dataset.tool, item, x:e.clientX, y:e.clientY, pid:e.pointerId, started:false};
+});
+
+window.addEventListener('pointermove',e=>{
+  if(!drag || e.pointerId!==drag.pid) return;
+  if(!drag.started){
+    if(Math.hypot(e.clientX-drag.x, e.clientY-drag.y)<8) return;
+    drag.started=true;
+    try{ drag.item.setPointerCapture(drag.pid); }catch(_){}
+    const t=TOOLS[drag.tool];
+    $('#dragGhost').innerHTML=ICON[t.ic]+'<span>'+t.n+'</span>';
+    $('#dragGhost').classList.add('on');
+    drag.item.classList.add('dragging'); document.body.classList.add('is-dragging');
+    // ガイドモードのヒントを出す。棚は描き直さない（つかんでいるボタンが消えるため）
+    S.sel=drag.tool; renderTubes(); renderStationHints();
+    $('#holdName').textContent=t.n;
+  }
+  const g=$('#dragGhost');
+  g.style.left=e.clientX+'px'; g.style.top=(e.clientY-30)+'px';
+  drag.lx=e.clientX; drag.ly=e.clientY;
+  const hit=dropAt(drag.tool,e.clientX,e.clientY);
+  markDrop(hit && hit.el);
+  if(!drag.raf) drag.raf=requestAnimationFrame(edgeScroll);
+});
+/* 画面のふちまで持っていくとスクロールする（指を止めていても続ける） */
+function edgeScroll(){
+  if(!drag || !drag.started) return;
+  const dy = drag.ly>window.innerHeight-40 ? 12 : drag.ly<40 ? -12 : 0;
+  if(dy){ window.scrollBy(0,dy); const hit=dropAt(drag.tool,drag.lx,drag.ly); markDrop(hit && hit.el); }
+  drag.raf=requestAnimationFrame(edgeScroll);
+}
+
+function endDrag(e,cancelled){
+  if(!drag || e.pointerId!==drag.pid) return;
+  const d=drag; drag=null;
+  if(d.raf) cancelAnimationFrame(d.raf);
+  if(!d.started) return;                       // 動かしていなければタップ（click で処理する）
+  suppressClick={el:d.item};
+  setTimeout(()=>{ suppressClick=null; },0);   // 離した瞬間の click は、この処理より先に届く
+  $('#dragGhost').classList.remove('on'); markDrop(null);
+  d.item.classList.remove('dragging'); document.body.classList.remove('is-dragging');
+  try{ d.item.releasePointerCapture(d.pid); }catch(_){}
+
+  const hit = cancelled ? null : dropAt(d.tool,e.clientX,e.clientY);
+  S.sel=null; render();                        // ドラッグ中に出したヒントを消す
+  if(!hit){
+    // 保護眼鏡とタイマーは置き場所が決まっているので、ちがう場所なら案内する（まちがいには数えない）
+    const el = cancelled ? null : document.elementFromPoint(e.clientX,e.clientY);
+    if(el && el.closest('.station') && (d.tool==='goggles'||d.tool==='timer'))
+      toast('warn', d.tool==='goggles' ? '保護眼鏡は「顔」のところまでドラッグしよう。'
+                                       : '「5〜10分待つ」は、湯のところまでドラッグしよう。',
+            'タップするだけでも使えます。');
+    return;
+  }
+  if(d.tool==='goggles'||d.tool==='timer') attempt(d.tool,null);
+  else useOn(d.tool,hit.target);
+}
+window.addEventListener('pointerup',     e=>endDrag(e,false));
+window.addEventListener('pointercancel', e=>endDrag(e,true));
+window.addEventListener('contextmenu',   e=>{ if(drag && drag.started) e.preventDefault(); });
 
 /* =========================================================
    温度スライダー
@@ -1493,8 +1640,10 @@ function resetAll(){
 /* =========================================================
    起動
    ========================================================= */
+function measureTop(){ document.documentElement.style.setProperty('--toph', $('.top').offsetHeight+'px'); }
+window.addEventListener('resize',measureTop); measureTop();
 initState(); buildTubes(); render();
-toast('ok','ようこそ！　まずは「実験の見通し」で流れを確かめよう。','道具や薬品を選んでから、使う場所（試験管など）をクリックします。',6000);
+toast('ok','ようこそ！　まずは「実験の見通し」で流れを確かめよう。','道具や薬品を、使う場所（試験管など）までドラッグします。選んでから場所をクリックしてもOK。',6000);
 </script>
 </body>
 </html>
