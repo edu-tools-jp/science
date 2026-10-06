@@ -834,7 +834,8 @@ function renderInstr(){
   const others=list.slice(1).map(s=>s.t).join('／');
   const MOVE_HINT={bathin:'試験管そのものを、湯までドラッグしてもOK。',
                    bathout:'試験管そのものを、試験管立てまでドラッグしてもOK。',
-                   burner:'試験管ばさみではさんだら、試験管そのものをガスバーナーまでドラッグしてもOK。'};
+                   burner:'試験管ばさみではさんだら、試験管そのものをガスバーナーまでドラッグしてもOK。',
+                   split:'試験管AをA′まで、BをB′まで、試験管そのものをドラッグしてもOK。'};
   const move=list.find(s=>MOVE_HINT[s.tool]);
   box.innerHTML='<div class="lab">'+PHASE_SHORT[nx.p]+'　つぎの操作</div>'+
     '<div class="txt">'+main.d+'</div>'+
@@ -1028,6 +1029,8 @@ function diagnose(tool,target,target2){
     return ['warn','先に湯の温度を約40℃にして、温度計で確かめよう。','熱すぎても冷たすぎても、唾液の消化酵素はよくはたらかない。'];
   if(tool==='split' && T && !T.warmed)
     return ['warn','まだ分けるときではありません。','先に約40℃の湯で5〜10分あたためる。'];
+  if(tool==='split' && target2 && ({A:'A2',B:'B2'})[target]!==target2)
+    return ['warn','Aの液はA′に、Bの液はB′に分けよう。','AとA′、BとB′がそれぞれ同じ液になるようにする。まちがえると、唾液を入れた液と水を入れた液が入れかわってしまう。'];
   if(tool==='shake' && T && T.vol===0)
     return ['warn','空の試験管を振っても意味がありません。','先に薬品を入れよう。'];
 
@@ -1388,6 +1391,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ S.sel=null; rende
    ドラッグ＆ドロップ（マウス・指）
    ・棚の道具を、使う場所までドラッグする
    ・試験管そのものを、湯・ガスバーナー・試験管立てまでドラッグして動かす
+   ・試験管AをA′に、BをB′に重ねて、液を半分に分ける
    選んでから場所をクリックする操作もそのまま使える（計画ツールと同じ操作感）。
    どれも attempt() を通るので、手順の判定は共通。
    ========================================================= */
@@ -1407,6 +1411,11 @@ document.addEventListener('click',e=>{
 /* 試験管を置いた場所が、どの操作にあたるか */
 const TUBE_MOVE={stBath:'bathin', stBurner:'burner', stRack:'bathout'};
 function tubeDropAt(id,el){
+  // AをA′（BをB′）の上に置く → 液を半分に分ける。AをB′のように組をまちがえたときも
+  // split として渡し、attempt() でまちがいとして注意する
+  const onto=el.closest('.tube');
+  if(onto && onto.dataset.target!==id && (id==='A'||id==='B') && /^[AB]2$/.test(onto.dataset.target))
+    return {tool:'split', target:id, target2:onto.dataset.target, el:onto};
   const st=el.closest('#stBath,#stBurner,#stRack');
   if(!st) return null;
   const tool=TUBE_MOVE[st.id], loc=S.tubes[id].loc;
@@ -1433,8 +1442,9 @@ function renderTubeHints(id){
   if(S.mode!=='guide') return;
   const ST={bathin:'#stBath', burner:'#stBurner', bathout:'#stRack'};
   pending().forEach(s=>{
-    if(s.target!==id || !ST[s.tool] || (s.req && s.req.some(r=>!S.done.has(r)))) return;
-    $(ST[s.tool]).classList.add('hit');
+    if(s.target!==id || (s.req && s.req.some(r=>!S.done.has(r)))) return;
+    if(ST[s.tool]) $(ST[s.tool]).classList.add('hit');
+    else if(s.tool==='split') tubeEls[s.target2].classList.add('pickable');   // 分ける先のA′・B′
   });
 }
 
@@ -1506,7 +1516,15 @@ function endDrag(e,cancelled){
   const hit = cancelled ? null : dropAt(d,e.clientX,e.clientY);
   S.sel=null; render();                        // ドラッグ中に出したヒントを消す
   // 試験管を動かすのは、棚の「湯に入れる」「ガスバーナー」「湯から取り出す」を使ったのと同じ
-  if(d.tube){ if(hit) attempt(hit.tool,d.tube); return; }
+  if(d.tube){
+    if(hit){ attempt(hit.tool,d.tube,hit.target2); return; }
+    // 空のA′・B′をAやBに重ねたとき：分けるときは、もとの試験管のほうを動かす（まちがいには数えない）
+    const el = cancelled ? null : document.elementFromPoint(e.clientX,e.clientY);
+    const onto = el && el.closest('.tube');
+    if(onto && (d.tube==='A2'||d.tube==='B2') && /^[AB]$/.test(onto.dataset.target) && pending().some(s=>s.tool==='split'))
+      toast('warn','液を分けるときは、もとの試験管をドラッグしよう。','AをA′まで、BをB′までドラッグすると、液の半分が移ります。');
+    return;
+  }
   if(!hit){
     // 保護眼鏡とタイマーは置き場所が決まっているので、ちがう場所なら案内する（まちがいには数えない）
     const el = cancelled ? null : document.elementFromPoint(e.clientX,e.clientY);
